@@ -6,11 +6,37 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LocalStorageManager {
   static const String _boxName = 'encrypted_products';
   static Box? _box;
+// Add these methods to the LocalStorageManager class
 
+static const String _offlineSkipKey = 'offlineSkips';
+static const int _maxSkips = 5;
+
+// Get remaining offline skips
+static Future<int> getOfflineSkips() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getInt(_offlineSkipKey) ?? _maxSkips;
+}
+
+// Decrement offline skips
+static Future<void> decrementOfflineSkips() async {
+  final prefs = await SharedPreferences.getInstance();
+  int currentSkips = prefs.getInt(_offlineSkipKey) ?? _maxSkips;
+  if (currentSkips > 0) {
+    await prefs.setInt(_offlineSkipKey, currentSkips - 1);
+  }
+}
+
+// Reset offline skips
+static Future<void> resetOfflineSkips() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_offlineSkipKey, _maxSkips);
+}
   // Initialize Hive
   static Future<void> initializeHive() async {
     await Hive.initFlutter();
@@ -55,3 +81,10 @@ class LocalStorageManager {
     await _box?.clear();
   }
 }
+
+
+// lib/local_storage_manager.dart
+
+
+
+
