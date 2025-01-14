@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/product_service.dart';
+import '../utils/offline_manager.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -11,20 +12,39 @@ class _SearchScreenState extends State<SearchScreen> {
   final ProductService productService = ProductService();
 
   List<dynamic> products = [];
-  bool isLoading = false;
+  bool isLoading = true;
+  String errorMessage = "";
 
   @override
   void initState() {
     super.initState();
-    fetchProducts();
+    checkAndFetchData();
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> checkAndFetchData() async {
     setState(() => isLoading = true);
+
     try {
-      products = await productService.fetchAllProducts();
+      // Check if it's time to fetch new data
+      final shouldFetch = await shouldFetchNewData();
+
+      if (shouldFetch) {
+        final isOnline = await productService.checkInternetConnection();
+
+        if (isOnline) {
+          // Fetch new data
+          products = await productService.fetchAllProducts();
+          await afterSuccessfulFetch();
+        } else {
+          // Handle offline mode with skips
+          await handleOfflineAccess();
+        }
+      } else {
+        print("Data is up-to-date. Loading local data...");
+        products = await productService.loadLocalData(); // Load data from local storage
+      }
     } catch (e) {
-      print("Error: $e");
+      setState(() => errorMessage = e.toString());
     } finally {
       setState(() => isLoading = false);
     }
@@ -32,10 +52,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> searchProducts(String query) async {
     setState(() => isLoading = true);
+
     try {
-      products = await productService.searchProducts(query);
+      if (query.isEmpty) {
+        products = await productService.loadLocalData(); // Load all data
+      } else {
+        products = await productService.searchLocalData(query); // Search in local data
+      }
     } catch (e) {
-      print("Error: $e");
+      setState(() => errorMessage = e.toString());
     } finally {
       setState(() => isLoading = false);
     }
@@ -54,18 +79,34 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: InputDecoration(
                 labelText: "Search",
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
               ),
-              onChanged: (value) {
-                if (value.isEmpty) {
-                  fetchProducts();
-                } else {
-                  searchProducts(value);
-                }
-              },
+              onChanged: searchProducts,
             ),
           ),
           if (isLoading)
-            Expanded(child: Center(child: CircularProgressIndicator()))
+            Expanded(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (errorMessage.isNotEmpty)
+            Expanded(
+              child: Center(
+                child: Text(
+                  errorMessage,
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          else if (products.isEmpty)
+            Expanded(
+              child: Center(
+                child: Text(
+                  "No products found",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            )
           else
             Expanded(
               child: ListView.builder(
@@ -85,3 +126,4 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
+
