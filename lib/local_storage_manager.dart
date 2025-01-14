@@ -7,13 +7,51 @@ import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+
+// lib/local_storage_manager.dart
 
 
 class LocalStorageManager {
   static const String _boxName = 'encrypted_products';
   static Box? _box;
-// Add these methods to the LocalStorageManager class
+  static final _secureStorage = FlutterSecureStorage();
+  static const _encryptionKeyKey = 'hive_encryption_key';
 
+  // Initialize Hive
+  static Future<void> initializeHive() async {
+    await Hive.initFlutter();
+    await openEncryptedBox();
+  }
+
+  // Generate or retrieve the encryption key
+  static Future<Uint8List> getEncryptionKey() async {
+    String? storedKey = await _secureStorage.read(key: _encryptionKeyKey);
+    if (storedKey == null) {
+      // Generate a new 256-bit key
+      final key = Hive.generateSecureKey();
+      // Store the key as a base64 string
+      await _secureStorage.write(key: _encryptionKeyKey, value: base64UrlEncode(key));
+      return key;
+    } else {
+      // Decode the stored base64 string back to bytes
+      return base64Url.decode(storedKey);
+    }
+  }
+
+  // Open an encrypted Hive box
+  static Future<void> openEncryptedBox() async {
+    if (!Hive.isBoxOpen(_boxName)) {
+      final encryptionKey = await getEncryptionKey();
+      _box = await Hive.openBox(
+        _boxName,
+        encryptionCipher: HiveAesCipher(encryptionKey),
+      );
+    } else {
+      _box = Hive.box(_boxName);
+    }
+  }
 static const String _offlineSkipKey = 'offlineSkips';
 static const int _maxSkips = 5;
 
@@ -37,34 +75,6 @@ static Future<void> resetOfflineSkips() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setInt(_offlineSkipKey, _maxSkips);
 }
-  // Initialize Hive
-  static Future<void> initializeHive() async {
-    await Hive.initFlutter();
-    await openEncryptedBox();
-  }
-
-  // Generate a 256-bit encryption key
-  static Uint8List generateEncryptionKey() {
-    // It's recommended to store this key securely.
-    // For demonstration, we're generating it from a passphrase.
-    // In production, consider more secure key management.
-    final passphrase = 'your_secure_passphrase_here'; // Replace with a strong passphrase
-    final key = sha256.convert(utf8.encode(passphrase)).bytes;
-    return Uint8List.fromList(key);
-  }
-
-  // Open an encrypted Hive box
-  static Future<void> openEncryptedBox() async {
-    if (!Hive.isBoxOpen(_boxName)) {
-      final encryptionKey = generateEncryptionKey();
-      _box = await Hive.openBox(
-        _boxName,
-        encryptionCipher: HiveAesCipher(encryptionKey),
-      );
-    } else {
-      _box = Hive.box(_boxName);
-    }
-  }
 
   // Save data to the encrypted box
   static Future<void> saveData(String key, dynamic value) async {
