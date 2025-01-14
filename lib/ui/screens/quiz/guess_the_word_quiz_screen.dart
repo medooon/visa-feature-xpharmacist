@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../api/product_service.dart';
-import '../utils/offline_manager.dart';
+import 'package:flutterquiz/ui/api/product_service.dart';
+import 'package:flutterquiz/utils/offline_manager.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
