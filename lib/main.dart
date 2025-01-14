@@ -1,11 +1,21 @@
+
+
+
+// lib/main.dart
+
 import 'package:flutter/material.dart';
-import 'package:flutterquiz/app/app.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'local_storage_manager.dart'; // We'll create this in the next step
+import 'local_storage_manager.dart';
+import 'product_service.dart';
+import 'product_model.dart';
+import 'package:flutterquiz/app/app.dart';
+
+import 'package:flutterquiz/ui/screens/quiz/guess_the_word_quiz_screen.dart'; // We'll create this later
 
 void main() async => runApp(await initializeApp());
 
-async {
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Hive
@@ -15,5 +25,15 @@ async {
 }
 
 class MyApp extends StatelessWidget {
-  // Your app's root widget
+  // Root of your application
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Macy Products',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: ProductListScreen(),
+    );
+  }
 }
