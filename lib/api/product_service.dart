@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'database_helper.dart';
-import '../utils/offline_manager.dart';
+import 'package:flutterquiz/utils/offline_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class ProductService {
