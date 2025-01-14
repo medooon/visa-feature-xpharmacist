@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ProductService {
-  final String baseUrl = "https://yourdomain.com/api";
+  final String baseUrl = "https://egysau.moazpharmacy.com/api";
 
   // Fetch all products
   Future<List<dynamic>> fetchAllProducts() async {
