@@ -10,13 +10,13 @@ export 'hive_constants.dart';
 export 'sound_constants.dart';
 export 'string_labels.dart';
 
-const appName = 'Elite Quiz';
-const packageName = 'com.wrteam.flutterquiz';
+const appName = 'X Pharmacist';
+const packageName = 'com.X.Pharmacist';
 
 /// Add your database url
 // NOTE: make sure to not add '/' at the end of url
 // NOTE: make sure to check if admin panel is http or https
-const databaseUrl = 'https://elitequiz.wrteam.me';
+const databaseUrl = 'https://226.waseetcash.com';
 
 // Enter 2 Letter ISO Country Code
 const defaultCountryCodeForPhoneLogin = 'IN';

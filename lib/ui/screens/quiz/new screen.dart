@@ -7,12 +7,12 @@ import 'package:flutterquiz/app/routes.dart';
 import 'package:flutterquiz/features/quiz/models/comprehension.dart';
 import 'package:flutterquiz/features/quiz/models/quiz_type.dart';
 import 'package:flutterquiz/ui/widgets/custom_appbar.dart';
+import 'package:flutterquiz/ui/widgets/custom_rounded_button.dart';
 import 'package:flutterquiz/utils/constants/fonts.dart';
 import 'package:flutterquiz/utils/constants/string_labels.dart';
 import 'package:flutterquiz/utils/extensions.dart';
 import 'package:flutterquiz/utils/ui_utils.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:screen_protector/screen_protector.dart';
 
 class FunAndLearnScreen extends StatefulWidget {
   const FunAndLearnScreen({
@@ -48,35 +48,48 @@ class _FunAndLearnScreen extends State<FunAndLearnScreen>
   );
 
   @override
-  void initState() {
-    super.initState();
-    _enableScreenProtection();
-  }
-
-  Future<void> _enableScreenProtection() async {
-    try {
-      await ScreenProtector.preventScreenshotOn();
-    } catch (e) {
-      debugPrint("Error enabling screen protection: $e");
-    }
-  }
-
-  Future<void> _disableScreenProtection() async {
-    try {
-      await ScreenProtector.preventScreenshotOff();
-    } catch (e) {
-      debugPrint("Error disabling screen protection: $e");
-    }
-  }
-
-  @override
   void dispose() {
-    _ytController.dispose();
-    _disableScreenProtection();
     super.dispose();
+    _ytController.dispose();
+  }
+
+  void navigateToQuestionScreen() {
+    Navigator.of(context).pushReplacementNamed(
+      Routes.quiz,
+      arguments: {
+        'numberOfPlayer': 1,
+        'quizType': QuizTypes.funAndLearn,
+        'comprehension': widget.comprehension,
+        'quizName': context.tr('funAndLearn'),
+      },
+    );
+  }
+
+  Widget _buildStartButton() {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: 30,
+        left: context.width * UiUtils.hzMarginPct,
+        right: context.width * UiUtils.hzMarginPct,
+      ),
+      child: CustomRoundedButton(
+        widthPercentage: context.width,
+        backgroundColor: Theme.of(context).primaryColor,
+        buttonTitle: context.tr(letsStart),
+        radius: 8,
+        onTap: navigateToQuestionScreen,
+        titleColor: Theme.of(context).colorScheme.surface,
+        showBorder: false,
+        height: 58,
+        elevation: 5,
+        textSize: 18,
+        fontWeight: FontWeights.semiBold,
+      ),
+    );
   }
 
   bool showFullPdf = false;
+  bool ytFullScreen = false;
 
   Widget _buildParagraph(Widget player) {
     return Container(
@@ -84,23 +97,21 @@ class _FunAndLearnScreen extends State<FunAndLearnScreen>
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
       ),
-      // أزلنا أي ارتفاع ثابت حتى يشبه الإصدار القديم
+      height: context.height * .75,
+      margin: EdgeInsets.symmetric(
+        horizontal: context.width * UiUtils.hzMarginPct,
+      ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(10), // حواف ثابتة 16 بكسل من جميع الجهات
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 10,
+        ),
         child: Column(
           children: [
-            // محتوى الفيديو
             if (widget.comprehension.contentType == ContentType.yt) player,
-
-            // محتوى الـ PDF
             if (widget.comprehension.contentType == ContentType.pdf) ...[
-              // أزلنا الـ height عن الـ SizedBox حتى يتمدد بحسب المحتوى
-              // أو يمكنك استبداله بـ Container دون تحديد ارتفاع
-              Container(
-                constraints: BoxConstraints(
-                  // حد أقصى للارتفاع لمنع تمدد PDF بلا حدود 
-                  maxHeight: MediaQuery.of(context).size.height * (showFullPdf ? 0.7 : 0.2),
-                ),
+              SizedBox(
+                height: context.height * (showFullPdf ? .7 : 0.2),
                 child: const PDF(
                   swipeHorizontal: true,
                   fitPolicy: FitPolicy.BOTH,
@@ -109,7 +120,8 @@ class _FunAndLearnScreen extends State<FunAndLearnScreen>
               TextButton(
                 onPressed: () => setState(() => showFullPdf = !showFullPdf),
                 child: Text(
-                  showFullPdf ? 'Show Less' : 'Show Full',
+                  context.tr(showFullPdf ? 'showLess' : 'showFull')!,
+                  textAlign: TextAlign.left,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onTertiary,
                         decoration: TextDecoration.underline,
@@ -117,13 +129,11 @@ class _FunAndLearnScreen extends State<FunAndLearnScreen>
                 ),
               ),
             ],
-
-            // محتوى النص (HTML)
             const SizedBox(height: 10),
             HtmlWidget(
               widget.comprehension.detail,
               onErrorBuilder: (_, e, err) => Text('$e error: $err'),
-              onLoadingBuilder: (_, __, ___) => const Center(
+              onLoadingBuilder: (_, e, l) => const Center(
                 child: CircularProgressIndicator(),
               ),
               textStyle: TextStyle(
@@ -148,9 +158,9 @@ class _FunAndLearnScreen extends State<FunAndLearnScreen>
         progressColors: ProgressBarColors(
           playedColor: Theme.of(context).primaryColor,
           bufferedColor:
-              Theme.of(context).colorScheme.onTertiary.withOpacity(0.5),
+              Theme.of(context).colorScheme.onTertiary.withValues(alpha: .5),
           backgroundColor:
-              Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              Theme.of(context).colorScheme.surface.withValues(alpha: .5),
           handleColor: Theme.of(context).primaryColor,
         ),
       ),
@@ -166,8 +176,17 @@ class _FunAndLearnScreen extends State<FunAndLearnScreen>
             roundedAppBar: false,
             title: Text(widget.comprehension.title),
           ),
-          body: Center(
-            child: _buildParagraph(player),
+          body: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topCenter,
+                child: _buildParagraph(player),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: _buildStartButton(),
+              ),
+            ],
           ),
         );
       },

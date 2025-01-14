@@ -1,4 +1,4 @@
-package com.wrteam.flutterquiz
+package com.X.Pharmacist
 
 import io.flutter.embedding.android.FlutterActivity
 

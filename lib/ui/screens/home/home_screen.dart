@@ -38,6 +38,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({required this.isGuest, super.key});
@@ -500,10 +501,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return;
       case 'guessTheWord':
         Navigator.of(context).pushNamed(
-          Routes.category,
-          arguments: {
-            'quizType': QuizTypes.guessTheWord,
-          },
+          Routes.guessTheWord
         );
         return;
       case 'audioQuestions':
@@ -1110,47 +1108,53 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         : const SizedBox();
   }
 
-  Widget _buildZones() {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: hzMargin,
-        right: hzMargin,
-        top: scrHeight * 0.04,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (playDifferentZones.isNotEmpty)
-            Text(
-              context.tr(playDifferentZoneKey) ?? playDifferentZoneKey,
-              style: _boldTextStyle,
-            )
-          else
-            const SizedBox(),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            mainAxisSpacing: 20,
-            padding: EdgeInsets.only(
-              top: _statusBarPadding * 0.2,
-              bottom: _statusBarPadding * 0.6,
-            ),
-            crossAxisSpacing: 20,
-            physics: const NeverScrollableScrollPhysics(),
-            children: List.generate(
-              playDifferentZones.length,
-              (i) => QuizGridCard(
-                onTap: () => _onPressedZone(playDifferentZones[i].title),
-                title: context.tr(playDifferentZones[i].title)!,
-                desc: context.tr(playDifferentZones[i].desc)!,
-                img: playDifferentZones[i].img,
+Widget _buildZones() {
+  return Padding(
+    padding: EdgeInsets.only(
+      left: hzMargin,
+      right: hzMargin,
+      top: scrHeight * 0.04,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (playDifferentZones.isNotEmpty)
+          Text(
+            context.tr(playDifferentZoneKey) ?? playDifferentZoneKey,
+            style: _boldTextStyle,
+          )
+        else
+          const SizedBox(),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          mainAxisSpacing: 20,
+          padding: EdgeInsets.only(
+            top: _statusBarPadding * 0.2,
+            bottom: _statusBarPadding * 0.6,
+          ),
+          crossAxisSpacing: 20,
+          physics: const NeverScrollableScrollPhysics(),
+          children: List.generate(
+            playDifferentZones.length,
+            (i) => QuizGridCard(
+              onTap: () => _onPressedZone(playDifferentZones[i].title),
+              title: context.tr(playDifferentZones[i].title)!,
+              desc: context.tr(playDifferentZones[i].desc)!,
+              img: playDifferentZones[i].img,
+              gradient: const LinearGradient(
+                colors: [Colors.orange, Colors.deepOrangeAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildDailyAds() {
     var clicked = false;
@@ -1651,6 +1655,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   bool profileComplete = false;
+    Future<void> _openWhatsApp() async {
+    const phoneNumber = '201554503155'; // Replace with your WhatsApp number
+    const message = 'سلام عليكم محتاج اشترك في التطبيق';
+    final whatsappUrl =
+        "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}";
+
+    final uri = Uri.parse(whatsappUrl);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      // Show a SnackBar instead of throwing an exception
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not launch WhatsApp. Please ensure it is installed.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1662,6 +1685,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openWhatsApp,
+        child: SvgPicture.asset(
+          'assets/images/whatsapp.svg',
+          width: 50,
+          height: 50,
+        ),
+        backgroundColor: Colors.green,
+        tooltip: 'Contact Us via WhatsApp',
+      ),
       body: SafeArea(
         child: widget.isGuest
             ? _buildHome()

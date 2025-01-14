@@ -1,4 +1,4 @@
-# Elite Quiz App
+# X Pharmacist App
 
 This is very short guide and insufficient, for more detailed information,
 please be sure to check the [documentation](https://wrteamdev.github.io/Elite_Quiz_Doc) or Offline Doc provided in with the code.

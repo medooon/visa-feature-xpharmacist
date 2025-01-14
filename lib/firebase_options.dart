@@ -69,6 +69,6 @@ class DefaultFirebaseOptions {
         '322915959213-0ohq3pp1m8ihaaje0t0mt4knoadeiema.apps.googleusercontent.com',
     iosClientId:
         '322915959213-dh9pngcbov233e8hok2b4i142nem7vs4.apps.googleusercontent.com',
-    iosBundleId: 'com.wrteam.flutterquiz',
+    iosBundleId: 'com.X.Pharmacist',
   );
 }

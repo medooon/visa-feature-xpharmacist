@@ -10,6 +10,7 @@ class QuizGridCard extends StatelessWidget {
     super.key,
     this.onTap,
     this.iconOnRight = true,
+    this.gradient, // Added
   });
 
   final String title;
@@ -17,6 +18,7 @@ class QuizGridCard extends StatelessWidget {
   final String img;
   final bool iconOnRight;
   final void Function()? onTap;
+  final Gradient? gradient; // Added
 
   ///
   static const _borderRadius = 10.0;
@@ -67,10 +69,13 @@ class QuizGridCard extends StatelessWidget {
               Container(
                 width: cSize,
                 height: cSize,
-                decoration: BoxDecoration(
+ decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(_borderRadius),
-                  color: Theme.of(context).colorScheme.surface,
-                ),
+                  gradient: gradient, // Updated to use gradient
+                  color: gradient == null
+                      ? Theme.of(context).colorScheme.surface
+                      : null, // Fallback to surface color
+               ),
                 padding: _padding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -81,9 +86,9 @@ class QuizGridCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.clip,
                       style: TextStyle(
-                        fontWeight: FontWeights.semiBold,
+                        fontWeight: FontWeights.bold,
                         fontSize: 18,
-                        color: Theme.of(context).colorScheme.onTertiary,
+                        color: Colors.white,
                       ),
                     ),
 
@@ -96,10 +101,7 @@ class QuizGridCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeights.regular,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onTertiary
-                              .withValues(alpha: 0.6),
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -111,7 +113,7 @@ class QuizGridCard extends StatelessWidget {
                           : Alignment.bottomLeft,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
+                          color: Colors.white,
                           borderRadius:
                               BorderRadius.circular(_iconBorderRadius),
                           border: Border.all(
