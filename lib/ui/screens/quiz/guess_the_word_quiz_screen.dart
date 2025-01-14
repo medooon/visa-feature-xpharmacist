@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutterquiz/lib/product_service.dart';
 import 'package:flutterquiz/lib/product_model.dart';
 
-class ProductListScreen extends StatefulWidget {
+class GuessTheWordQuizScreen extends StatefulWidget {
   @override
-  _ProductListScreenState createState() => _ProductListScreenState();
+  _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
 
-class _ProductListScreenState extends State<ProductListScreen> {
+class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   bool _isLoading = true;
