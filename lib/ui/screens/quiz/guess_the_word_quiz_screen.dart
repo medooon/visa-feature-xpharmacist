@@ -1,8 +1,9 @@
-// lib/screens/product_list_screen.dart
+
+
 
 import 'package:flutter/material.dart';
-import 'package:flutterquiz/lib/product_service.dart';
-import 'package:flutterquiz/lib/product_model.dart';
+import 'package:flutterquiz/lib/drug_database.dart';
+import 'package:flutterquiz/lib/drug.dart';
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   @override
@@ -10,62 +11,69 @@ class GuessTheWordQuizScreen extends StatefulWidget {
 }
 
 class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
-  List<Product> _products = [];
-  List<Product> _filteredProducts = [];
+  List<Drug> _drugs = [];
+  List<Drug> _filteredDrugs = [];
   bool _isLoading = true;
-  String _searchQuery = "";
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    _fetchDrugs(); // Fetch data when screen loads
   }
 
-  // Load products: fetch from JSON if needed, else load locally
-  Future<void> _loadProducts() async {
+  // Fetch drugs from API or local database
+  Future<void> _fetchDrugs() async {
     try {
-      bool shouldFetch = await ProductService.shouldFetchData();
-      if (shouldFetch) {
-        List<Product> fetchedProducts = await ProductService.fetchProductsFromJson();
-        await ProductService.saveProductsLocally(fetchedProducts);
-        setState(() {
-          _products = fetchedProducts;
-          _filteredProducts = fetchedProducts;
-        });
-      } else {
-        List<Product> localProducts = await ProductService.getProductsFromLocal();
-        setState(() {
-          _products = localProducts;
-          _filteredProducts = localProducts;
-        });
-      }
-    } catch (e) {
-      // Handle errors (e.g., show a snackbar)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading products: $e')),
-      );
-    } finally {
       setState(() {
+        _isLoading = true;
+      });
+
+      // Fetch drugs from API
+      final drugs = await fetchDrugs('https://your-api-link.com/data.json');
+      await _storeDrugsLocally(drugs); // Store data locally
+      setState(() {
+        _drugs = drugs;
+        _filteredDrugs = drugs;
         _isLoading = false;
+      });
+    } catch (e) {
+      // If fetching from API fails, load from local database
+      final drugs = await _getDrugsOffline();
+      setState(() {
+        _drugs = drugs;
+        _filteredDrugs = drugs;
+        _isLoading = false;
+        _errorMessage = e.toString();
       });
     }
   }
 
-  // Filter products based on search query
-  void _filterProducts(String query) {
-    List<Product> filtered = _products.where((product) {
-      final lowerQuery = query.toLowerCase();
-      return product.tradeName.toLowerCase().contains(lowerQuery) ||
-          product.genericName.toLowerCase().contains(lowerQuery) ||
-          product.pharmacology.toLowerCase().contains(lowerQuery) ||
-          product.arabicName.toLowerCase().contains(lowerQuery) ||
-          product.company.toLowerCase().contains(lowerQuery) ||
-          product.route.toLowerCase().contains(lowerQuery);
+  // Store drugs locally in SQLite
+  Future<void> _storeDrugsLocally(List<Drug> drugs) async {
+    await DrugDatabase.instance.insertDrugs(drugs);
+  }
+
+  // Fetch drugs from SQLite when offline
+  Future<List<Drug>> _getDrugsOffline() async {
+    return await DrugDatabase.instance.fetchDrugsFromDB();
+  }
+
+  // Filter drugs based on user input
+  void _filterDrugs(String query) {
+    final filtered = _drugs.where((drug) {
+      final tradeNameLower = drug.tradeName.toLowerCase();
+      final genericNameLower = drug.genericName.toLowerCase();
+      final arabicNameLower = drug.arabicName.toLowerCase();
+      final queryLower = query.toLowerCase();
+
+      return tradeNameLower.contains(queryLower) ||
+          genericNameLower.contains(queryLower) ||
+          arabicNameLower.contains(queryLower);
     }).toList();
 
     setState(() {
-      _searchQuery = query;
-      _filteredProducts = filtered;
+      _filteredDrugs = filtered;
     });
   }
 
@@ -73,38 +81,49 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Macy Products'),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(56.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: _filterProducts,
-              decoration: InputDecoration(
-                hintText: 'Search Products...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-          ),
-        ),
+        title: Text('Drug Search'),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : _filteredProducts.isEmpty
-              ? Center(child: Text('No products found'))
-              : ListView.builder(
-                  itemCount: _filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = _filteredProducts[index];
-                    return ListTile(
-                      title: Text(product.tradeName),
-                      subtitle: Text(product.genericName),
-                      trailing: Text('\$${product.price.toStringAsFixed(2)}'),
-                    );
-                  },
+          : _errorMessage != null
+              ? Center(
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                )
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: 'Search by name (Trade, Generic, Arabic)',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: _filterDrugs,
+                      ),
+                    ),
+                    Expanded(
+                      child: _filteredDrugs.isEmpty
+                          ? Center(child: Text('No results found'))
+                          : ListView.builder(
+                              itemCount: _filteredDrugs.length,
+                              itemBuilder: (context, index) {
+                                final drug = _filteredDrugs[index];
+                                return ListTile(
+                                  title: Text(drug.tradeName),
+                                  subtitle: Text(
+                                    '${drug.genericName} (${drug.arabicName})',
+                                  ),
+                                  trailing: Text(
+                                    '\$${drug.price.toStringAsFixed(2)}',
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 ),
     );
   }
