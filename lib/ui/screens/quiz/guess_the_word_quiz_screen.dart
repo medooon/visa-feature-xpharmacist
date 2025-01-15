@@ -2,8 +2,8 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:flutterquiz/lib/drug_database.dart';
-import 'package:flutterquiz/lib/drug.dart';
+import 'package:flutterquiz/lib/db/drug_database.dart';
+import 'package:flutterquiz/lib/model/drug.dart';
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   @override
