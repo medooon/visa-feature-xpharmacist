@@ -1,6 +1,4 @@
-// lib/models/product_model.dart
-
-class Product {
+class Drug {
   final int id;
   final String tradeName;
   final String genericName;
@@ -11,7 +9,7 @@ class Product {
   final String description;
   final String route;
 
-  Product({
+  Drug({
     required this.id,
     required this.tradeName,
     required this.genericName,
@@ -23,21 +21,21 @@ class Product {
     required this.route,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
+  factory Drug.fromJson(Map<String, dynamic> json) {
+    return Drug(
       id: json['id'],
       tradeName: json['trade_name'],
       genericName: json['generic_name'],
       pharmacology: json['pharmacology'],
       arabicName: json['arabic_name'],
-      price: (json['price'] as num).toDouble(),
+      price: json['price'].toDouble(),
       company: json['company'],
       description: json['description'],
       route: json['route'],
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
       'trade_name': tradeName,
