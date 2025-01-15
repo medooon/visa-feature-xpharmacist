@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutterquiz/lib/db/drug_database.dart';
-import 'package:flutterquiz/lib/model/drug.dart';
+import 'package:flutterquiz/models/drug.dart';
+import 'package:flutterquiz/db/drug_database.dart';
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
