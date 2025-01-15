@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:flutterquiz/lib/drug.dart'; // Replace with your actual model file path
+import 'package:flutterquiz/lib/model/drug.dart'; // Replace with your actual model file path
 
 class DrugDatabase {
   static final DrugDatabase instance = DrugDatabase._init();
