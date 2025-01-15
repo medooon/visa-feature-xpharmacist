@@ -6,6 +6,11 @@ import 'package:flutterquiz/lib/db/drug_database.dart';
 import 'package:flutterquiz/lib/model/drug.dart';
 
 class GuessTheWordQuizScreen extends StatefulWidget {
+
+
+class GuessTheWordQuizScreen extends StatefulWidget {
+  const GuessTheWordQuizScreen({Key? key}) : super(key: key);
+
   @override
   _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
@@ -19,10 +24,10 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchDrugs(); // Fetch data when screen loads
+    _fetchDrugs(); // Fetch data when the screen loads
   }
 
-  // Fetch drugs from API or local database
+  // Fetch drugs from API or SQLite
   Future<void> _fetchDrugs() async {
     try {
       setState(() {
@@ -30,8 +35,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       });
 
       // Fetch drugs from API
-      final drugs = await fetchDrugs('https://your-api-link.com/data.json');
-      await _storeDrugsLocally(drugs); // Store data locally
+      final drugs = await fetchDrugs('https://egypt.moazpharmacy.com/products.json');
+      await _storeDrugsLocally(drugs); // Save data locally
       setState(() {
         _drugs = drugs;
         _filteredDrugs = drugs;
@@ -59,7 +64,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     return await DrugDatabase.instance.fetchDrugsFromDB();
   }
 
-  // Filter drugs based on user input
+  // Filter drugs based on search input
   void _filterDrugs(String query) {
     final filtered = _drugs.where((drug) {
       final tradeNameLower = drug.tradeName.toLowerCase();
@@ -81,15 +86,15 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Drug Search'),
+        title: const Text('Drug Search'),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
               ? Center(
                   child: Text(
                     _errorMessage!,
-                    style: TextStyle(color: Colors.red),
+                    style: const TextStyle(color: Colors.red),
                   ),
                 )
               : Column(
@@ -97,8 +102,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Search by name (Trade, Generic, Arabic)',
+                        decoration: const InputDecoration(
+                          labelText: 'Search by Trade, Generic, or Arabic Name',
                           border: OutlineInputBorder(),
                         ),
                         onChanged: _filterDrugs,
@@ -106,7 +111,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                     ),
                     Expanded(
                       child: _filteredDrugs.isEmpty
-                          ? Center(child: Text('No results found'))
+                          ? const Center(child: Text('No results found'))
                           : ListView.builder(
                               itemCount: _filteredDrugs.length,
                               itemBuilder: (context, index) {
