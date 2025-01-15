@@ -1,16 +1,18 @@
-
-
-
 import 'package:flutter/material.dart';
 import 'package:flutterquiz/lib/db/drug_database.dart';
 import 'package:flutterquiz/lib/model/drug.dart';
 
 class GuessTheWordQuizScreen extends StatefulWidget {
-
-
-class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
-
+  
+  /// If you need a static route to use in your routes.dart or similar:
+  static Route route(RouteSettings settings) {
+    return MaterialPageRoute(
+      builder: (_) => const GuessTheWordQuizScreen(),
+      settings: settings,
+    );
+  }
+  
   @override
   _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
