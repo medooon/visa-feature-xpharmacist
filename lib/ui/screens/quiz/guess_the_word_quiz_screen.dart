@@ -6,7 +6,7 @@ import 'package:flutterquiz/models/drug.dart';
 import 'package:flutterquiz/services/drug_service.dart';
 import 'package:flutterquiz/models/data_version.dart';
 
-class DrugSearchScreen extends StatefulWidget {
+class GuessTheWordQuizScreen extends StatefulWidget {
     const GuessTheWordQuizScreen({Key? key}) : super(key: key);
 
     /// If you need a static route to use in your routes.dart or similar:
@@ -18,10 +18,10 @@ class DrugSearchScreen extends StatefulWidget {
   }
   
   @override
-  _DrugSearchScreenState createState() => _DrugSearchScreenState();
+  _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
 
-class _DrugSearchScreenState extends State<DrugSearchScreen> {
+class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   final DrugService _drugService = DrugService();
   List<Drug> allDrugs = [];
   List<Drug> filteredDrugs = [];
