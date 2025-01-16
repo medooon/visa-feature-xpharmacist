@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,6 +7,15 @@ import 'package:url_launcher/url_launcher.dart';
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
 
+=======
+import 'package:flutter/material.dart';
+import 'package:flutterquiz/model/drug.dart';
+import 'package:flutterquiz/db/drug_database.dart';
+
+class GuessTheWordQuizScreen extends StatefulWidget {
+  const GuessTheWordQuizScreen({Key? key}) : super(key: key);
+  
+>>>>>>> 95e4f98ab29a7657dfdcdf9e64022ec6543187b7
   /// If you need a static route to use in your routes.dart or similar:
   static Route route(RouteSettings settings) {
     return MaterialPageRoute(
@@ -13,7 +23,11 @@ class GuessTheWordQuizScreen extends StatefulWidget {
       settings: settings,
     );
   }
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 95e4f98ab29a7657dfdcdf9e64022ec6543187b7
   @override
   State<GuessTheWordQuizScreen> createState() => _GuessTheWordQuizScreenState();
 }
@@ -39,6 +53,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _fetchDrugs();
   }
 
@@ -56,6 +71,26 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       } else {
         throw Exception('Failed to load data from $_jsonUrl');
       }
+=======
+    _fetchDrugs(); // Fetch data when the screen loads
+  }
+
+  // Fetch drugs from API or SQLite
+  Future<void> _fetchDrugs() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Fetch drugs from API
+      final drugs = await fetchDrugs('https://egypt.moazpharmacy.com/products.json');
+      await _storeDrugsLocally(drugs); // Save data locally
+      setState(() {
+        _drugs = drugs;
+        _filteredDrugs = drugs;
+        _isLoading = false;
+      });
+>>>>>>> 95e4f98ab29a7657dfdcdf9e64022ec6543187b7
     } catch (e) {
       debugPrint('Error fetching drug list: $e');
     }
@@ -81,7 +116,11 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     _filterDrugs(_searchQuery);
   }
 
+<<<<<<< HEAD
   /// The core filtering logic:
+=======
+  // Filter drugs based on search input
+>>>>>>> 95e4f98ab29a7657dfdcdf9e64022ec6543187b7
   void _filterDrugs(String query) {
     if (query.isEmpty) {
       setState(() => _filteredDrugs = []);
@@ -180,6 +219,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     return Scaffold(
       // 2) Remove "X Pharmacist" from the screen bar
       appBar: AppBar(
+<<<<<<< HEAD
         backgroundColor: Colors.white,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,6 +297,27 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                           subtitle: Text(genericName, style: genericNameStyle),
                           trailing: Text(trailingText, style: priceStyle),
                           onTap: () => _onDrugSelected(drug),
+=======
+        title: const Text('Drug Search'),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                )
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          labelText: 'Search by Trade, Generic, or Arabic Name',
+                          border: OutlineInputBorder(),
+>>>>>>> 95e4f98ab29a7657dfdcdf9e64022ec6543187b7
                         ),
                       );
                     },
@@ -297,6 +358,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 Row(
                   children: [
                     Expanded(
+<<<<<<< HEAD
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
@@ -324,6 +386,25 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                         onPressed: _onImagePressed,
                         child: const Text('Image'),
                       ),
+=======
+                      child: _filteredDrugs.isEmpty
+                          ? const Center(child: Text('No results found'))
+                          : ListView.builder(
+                              itemCount: _filteredDrugs.length,
+                              itemBuilder: (context, index) {
+                                final drug = _filteredDrugs[index];
+                                return ListTile(
+                                  title: Text(drug.tradeName),
+                                  subtitle: Text(
+                                    '${drug.genericName} (${drug.arabicName})',
+                                  ),
+                                  trailing: Text(
+                                    '\$${drug.price.toStringAsFixed(2)}',
+                                  ),
+                                );
+                              },
+                            ),
+>>>>>>> 95e4f98ab29a7657dfdcdf9e64022ec6543187b7
                     ),
                   ],
                 ),
