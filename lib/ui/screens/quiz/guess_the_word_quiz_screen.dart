@@ -5,8 +5,6 @@ import 'package:hive/hive.dart';
 import 'package:flutterquiz/models/drug.dart';
 import 'package:flutterquiz/services/drug_service.dart';
 import 'package:flutterquiz/models/data_version.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
 
@@ -96,14 +94,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           case 'Generic Name':
             fieldToSearch = drug.genericName.toLowerCase();
             break;
-          case 'Arabic Name':
-            fieldToSearch = drug.arabicName.toLowerCase();
-            break;
           case 'Pharmacology':
             fieldToSearch = drug.pharmacology.toLowerCase();
-            break;
-          case 'Price':
-            fieldToSearch = drug.price.toString();
             break;
           default:
             fieldToSearch = drug.tradeName.toLowerCase();
