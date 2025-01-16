@@ -390,8 +390,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                   onPressed:
                                       selectedDrug != null ? _showSimilarDrugs : null,
                                   style: ElevatedButton.styleFrom(
-                                    primary: Colors.blue,
-                                    onPrimary: Colors.white,
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
                                     padding: EdgeInsets.symmetric(vertical: 15),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8.0),
@@ -411,8 +411,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                       ? _showAlternativeDrugs
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    primary: Colors.green,
-                                    onPrimary: Colors.white,
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
                                     padding: EdgeInsets.symmetric(vertical: 15),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8.0),
@@ -434,8 +434,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                               onPressed:
                                   selectedDrug != null ? _showDrugImage : null,
                               style: ElevatedButton.styleFrom(
-                                primary: Colors.orange,
-                                onPrimary: Colors.white,
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
                                 padding: EdgeInsets.symmetric(vertical: 15),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8.0),
