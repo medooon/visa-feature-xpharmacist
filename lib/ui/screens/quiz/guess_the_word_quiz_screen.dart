@@ -7,7 +7,8 @@ import 'package:flutterquiz/services/drug_service.dart';
 import 'package:flutterquiz/models/data_version.dart';
 
 class DrugSearchScreen extends StatefulWidget {
-  
+    const GuessTheWordQuizScreen({Key? key}) : super(key: key);
+
     /// If you need a static route to use in your routes.dart or similar:
   static Route route(RouteSettings settings) {
     return MaterialPageRoute(
