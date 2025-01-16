@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:flutterquiz/models/drug.dart';
+import 'package:flutterquiz/models/data_version.dart';
 
 class DrugService {
   // Replace with your actual JSON URL
