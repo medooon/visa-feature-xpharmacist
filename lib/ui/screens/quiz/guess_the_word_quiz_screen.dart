@@ -7,6 +7,8 @@ import 'package:flutterquiz/services/drug_service.dart';
 import 'package:flutterquiz/models/data_version.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
@@ -148,26 +150,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-  Future<String?> fetchImageUrl(String query) async {
-    final String apiKey = 'YOUR_API_KEY';
-    final String searchEngineId = 'YOUR_SEARCH_ENGINE_ID';
-    final String searchUrl =
-        'https://www.googleapis.com/customsearch/v1?q=$query&searchType=image&key=$apiKey&cx=$searchEngineId&num=1';
-
-    try {
-      final response = await http.get(Uri.parse(searchUrl));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['items'] != null && data['items'].length > 0) {
-          return data['items'][0]['link'];
-        }
-      }
-    } catch (e) {
-      print('Error fetching image: $e');
-    }
-    return null;
-  }
 
   void _showSimilarDrugs() {
     if (selectedDrug == null) return;
@@ -193,29 +175,27 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     });
   }
 
+/// Show Google Images (in-app) if a drug is selected
   Future<void> _showDrugImage() async {
-    if (selectedDrug == null) return;
-
-    String query = selectedDrug!.tradeName;
-    String? imageUrl = await fetchImageUrl(query);
-
-    if (imageUrl != null) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Image of ${selectedDrug!.tradeName}'),
-          content: Image.network(imageUrl),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Close'),
-            ),
-          ],
-        ),
+    if (_selectedDrug == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No drug selected')),
       );
+      return;
+    }
+
+    final tradeName = _selectedDrug!['tradeName'] ?? 'N/A';
+    final googleImagesUrl = 'https://www.google.com/search?tbm=isch&q=$tradeName';
+
+    // Launch in an in-app WebView
+    if (await canLaunchUrl(Uri.parse(googleImagesUrl))) {
+      await launchUrl(Uri.parse(googleImagesUrl),
+          mode: LaunchMode.inAppWebView);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No image found for ${selectedDrug!.tradeName}.')),
+        SnackBar(
+          content: Text('Could not launch $googleImagesUrl'),
+        ),
       );
     }
   }
@@ -345,14 +325,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                               fontSize: 16,
                                             ),
                                           ),
-                                          TextSpan(
-                                            text: ' (${drug.genericName})',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.black54,
-                                              fontSize: 14,
-                                            ),
-                                          ),
                                         ],
                                       ),
                                     ),
@@ -360,11 +332,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text('Pharmacology: ${drug.pharmacology}'),
-                                        Text('Arabic Name: ${drug.arabicName}'),
-                                        Text('Price: \$${drug.price.toStringAsFixed(2)}'),
-                                        Text('Company: ${drug.company}'),
-                                        Text('Route: ${drug.route}'),
+                                        Text('${drug.genericName}'),
+                                    
                                       ],
                                     ),
                                     isThreeLine: true,
@@ -424,13 +393,10 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                          SizedBox(height: 10),
-                          // Image Button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
+                              SizedBox(height: 10),
+                               // Image Button
+                              Expanded(
+                                child: ElevatedButton(
                               onPressed:
                                   selectedDrug != null ? _showDrugImage : null,
                               style: ElevatedButton.styleFrom(
@@ -439,14 +405,17 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                 padding: EdgeInsets.symmetric(vertical: 15),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8.0),
+                                      ),
+                                   ),
+                                   child: Text(
+                                   'Image',
+                                     style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                'Image',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
+                            ],
                           ),
+                          
                         ],
                       ),
                     ),
