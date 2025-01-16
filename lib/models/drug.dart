@@ -52,5 +52,6 @@ factory Drug.fromJson(Map<String, dynamic> json) {
     description: json['description'] ?? 'No description available.',
     route: json['route'] ?? 'N/A',
   );
+ }
 }
 
