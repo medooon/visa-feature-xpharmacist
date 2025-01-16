@@ -229,9 +229,8 @@ void _onDrugTap(Drug drug) {
   final List<String> searchCriteriaOptions = [
     'Trade Name',
     'Generic Name',
-    'Arabic Name',
     'Pharmacology',
-    'Price'
+    
   ];
 
   @override
@@ -271,6 +270,11 @@ void _onDrugTap(Drug drug) {
                     SizedBox(width: 10),
                     DropdownButton<String>(
                       value: searchCriteria,
+                        dropdownColor: Colors.white, // Dropdown background color
+                         style: TextStyle(
+                          color: Colors.black, // Text color
+                             fontSize: 16, // Optional: Adjust font size
+                                 ),
                       items: searchCriteriaOptions
                           .map((criteria) => DropdownMenuItem<String>(
                                 value: criteria,
