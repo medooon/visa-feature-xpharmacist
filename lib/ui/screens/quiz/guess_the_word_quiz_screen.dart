@@ -313,8 +313,16 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _onDescriptionButtonClick,
-                            child: Text(selectedDrug!.tradeName),
-                          ),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                            child: Text(
+                              selectedDrug!.tradeName,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                         ),
                         ),
                       ),
                     Expanded(
@@ -325,14 +333,122 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                 final drug = filteredDrugs[index];
                                 return Card(
                                   child: ListTile(
-                                    title: Text(drug.tradeName),
-                                    subtitle: Text(drug.genericName),
-                                    onTap: () => _onDrugTap(drug),
+                                    // **Modification 17: Style Trade Names Bold and Generic Names Normal**
+                                    title: RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: drug.tradeName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: ' (${drug.genericName})',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.normal,
+                                              color: Colors.black54,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Pharmacology: ${drug.pharmacology}'),
+                                        Text('Arabic Name: ${drug.arabicName}'),
+                                        Text('Price: \$${drug.price.toStringAsFixed(2)}'),
+                                        Text('Company: ${drug.company}'),
+                                        Text('Route: ${drug.route}'),
+                                      ],
+                                    ),
+                                    isThreeLine: true,
+                                   onTap: () => _onDrugTap(drug),
                                   ),
                                 );
                               },
                             )
                           : Center(child: Text('No drugs found')),
+                    ),
+                    // **Modification 18: Bottom Buttons - Similar, Alternative, Image**
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          // Dynamic Description Button is already added above
+                          // Row for Similar and Alternative Buttons
+                          Row(
+                            children: [
+                              // Similar Button
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed:
+                                      selectedDrug != null ? _showSimilarDrugs : null,
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.blue,
+                                    onPrimary: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Similar',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              // Alternative Button
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: selectedDrug != null
+                                      ? _showAlternativeDrugs
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.green,
+                                    onPrimary: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Alternative',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          // Image Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed:
+                                  selectedDrug != null ? _showDrugImage : null,
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.orange,
+                                onPrimary: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                              ),
+                              child: Text(
+                                'Image',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -343,7 +459,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 class DrugDetailScreen extends StatelessWidget {
   final Drug drug;
 
-  const DrugDetailScreen({required this.drug});
+  DrugDetailScreen({required this.drug});
 
   @override
   Widget build(BuildContext context) {
@@ -351,9 +467,45 @@ class DrugDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(drug.tradeName),
       ),
-      body: Center(
-        child: Text('Details of ${drug.tradeName}'),
-      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                drug.tradeName,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text('Generic Name: ${drug.genericName}',
+                  style: TextStyle(fontSize: 18)),
+              SizedBox(height: 10),
+              Text('Pharmacology: ${drug.pharmacology}',
+                  style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              // **Modification 19: Ensure Arabic Characters Display Correctly**
+              Text(
+                'Arabic Name: ${drug.arabicName}',
+                style: TextStyle(fontSize: 16),
+                textDirection: TextDirection.rtl, // Right-to-left for Arabic
+              ),
+              SizedBox(height: 10),
+              Text('Price: \$${drug.price.toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              Text('Company: ${drug.company}',
+                  style: TextStyle(fontSize: 16)),
+              SizedBox(height: 10),
+              Text('Route: ${drug.route}', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 20),
+              Text('Description:', style: TextStyle(fontSize: 18)),
+              SizedBox(height: 5),
+              Text(drug.description, style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+     ),
     );
   }
 }
