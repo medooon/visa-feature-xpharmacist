@@ -464,6 +464,7 @@ class DrugDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // White background
       appBar: AppBar(
         title: Text(drug.tradeName),
       ),
@@ -478,34 +479,55 @@ class DrugDetailScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
-              Text('Generic Name: ${drug.genericName}',
-                  style: TextStyle(fontSize: 18)),
-              SizedBox(height: 10),
-              Text('Pharmacology: ${drug.pharmacology}',
-                  style: TextStyle(fontSize: 16)),
-              SizedBox(height: 10),
-              // **Modification 19: Ensure Arabic Characters Display Correctly**
               Text(
-                'Arabic Name: ${drug.arabicName}',
+                'Generic Name:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+              Text(
+                drug.genericName,
                 style: TextStyle(fontSize: 16),
-                textDirection: TextDirection.rtl, // Right-to-left for Arabic
               ),
               SizedBox(height: 10),
-              Text('Price: \$${drug.price.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 16)),
+              Text(
+                'Pharmacology:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+              Text(
+                drug.pharmacology,
+                style: TextStyle(fontSize: 16),
+              ),
               SizedBox(height: 10),
-              Text('Company: ${drug.company}',
-                  style: TextStyle(fontSize: 16)),
+              Text(
+                'Company:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+              Text(
+                drug.company,
+                style: TextStyle(fontSize: 16),
+              ),
               SizedBox(height: 10),
-              Text('Route: ${drug.route}', style: TextStyle(fontSize: 16)),
+              Text(
+                'Route:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
+              ),
+              Text(
+                drug.route,
+                style: TextStyle(fontSize: 16),
+              ),
               SizedBox(height: 20),
-              Text('Description:', style: TextStyle(fontSize: 18)),
+              Text(
+                'Description:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+              ),
               SizedBox(height: 5),
-              Text(drug.description, style: TextStyle(fontSize: 16)),
+              Text(
+                drug.description,
+                style: TextStyle(fontSize: 16),
+              ),
             ],
           ),
         ),
-     ),
+      ),
     );
   }
 }
