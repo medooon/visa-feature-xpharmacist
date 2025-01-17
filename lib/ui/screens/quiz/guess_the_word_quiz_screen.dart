@@ -1,12 +1,9 @@
-// lib/screens/drug_search_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:flutterquiz/models/drug.dart';
 import 'package:flutterquiz/services/drug_service.dart';
 import 'package:flutterquiz/models/data_version.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
@@ -142,7 +139,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-
   void _showSimilarDrugs() {
     if (selectedDrug == null) return;
 
@@ -167,7 +163,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     });
   }
 
-/// Show Google Images (in-app) if a drug is selected
+  /// Show Google Images (in-app) if a drug is selected
   Future<void> _showDrugImage() async {
     if (selectedDrug == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -176,7 +172,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       return;
     }
 
-    final tradeName = selectedDrug!['tradeName'] ?? 'N/A';
+    final tradeName = selectedDrug!.tradeName ?? 'N/A';
     final googleImagesUrl = 'https://www.google.com/search?tbm=isch&q=$tradeName';
 
     // Launch in an in-app WebView
@@ -192,19 +188,18 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-void _onDrugTap(Drug drug) {
-  setState(() {
-    selectedDrug = drug; // Only set the selected drug
-  });
+  void _onDrugTap(Drug drug) {
+    setState(() {
+      selectedDrug = drug; // Only set the selected drug
+    });
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => DrugDetailScreen(drug: drug),
-    ),
-   );
-}
-
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DrugDetailScreen(drug: drug),
+      ),
+    );
+  }
 
   void _onDescriptionButtonClick() {
     if (selectedDrug == null) return;
@@ -221,7 +216,6 @@ void _onDrugTap(Drug drug) {
     'Trade Name',
     'Generic Name',
     'Pharmacology',
-    
   ];
 
   @override
@@ -238,196 +232,188 @@ void _onDrugTap(Drug drug) {
         ],
       ),
       body: isLoading
-    ? Center(child: CircularProgressIndicator())
-    : errorMessage.isNotEmpty
-        ? Center(child: Text(errorMessage))
-        : Column(
-            children: [
-              // Search and Results Section
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-              child: Row(
-             children: [
-             Expanded(
-             child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: 'Search',
-               prefixIcon: Icon(Icons.search),
-               border: OutlineInputBorder(),
-            ),
-           ),
-          ),
-      SizedBox(width: 10),
-      DropdownButton<String>(
-        value: searchCriteria,
-        dropdownColor: Colors.white, // Dropdown background color
-        style: TextStyle(
-          color: Colors.black, // Text color
-          fontSize: 16, // Optional: Adjust font size
-        ),
-        items: searchCriteriaOptions
-            .map((criteria) => DropdownMenuItem<String>(
-                  value: criteria,
-                  child: Text(criteria),
-                ))
-            .toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              searchCriteria = value;
-              _search();
-            });
-          }
-        },
-      ),
-    ],
-  ),
-)
-              Expanded(
-                child: filteredDrugs.isNotEmpty
-                    ? ListView.builder(
-                        itemCount: filteredDrugs.length,
-                        itemBuilder: (context, index) {
-                          final drug = filteredDrugs[index];
-                          return Card(
-                            child: ListTile(
-                              title: RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: drug.tradeName,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        fontSize: 16,
+          ? Center(child: CircularProgressIndicator())
+          : errorMessage.isNotEmpty
+              ? Center(child: Text(errorMessage))
+              : Column(
+                  children: [
+                    // Search and Results Section
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: searchController,
+                              decoration: InputDecoration(
+                                labelText: 'Search',
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          DropdownButton<String>(
+                            value: searchCriteria,
+                            dropdownColor: Colors.white,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
+                            items: searchCriteriaOptions
+                                .map((criteria) => DropdownMenuItem<String>(
+                                      value: criteria,
+                                      child: Text(criteria),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  searchCriteria = value;
+                                  _search();
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: filteredDrugs.isNotEmpty
+                          ? ListView.builder(
+                              itemCount: filteredDrugs.length,
+                              itemBuilder: (context, index) {
+                                final drug = filteredDrugs[index];
+                                return Card(
+                                  child: ListTile(
+                                    title: RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: drug.tradeName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${drug.genericName}'),
-                                ],
-                              ),
-                              isThreeLine: true,
-                              onTap: () => _onDrugTap(drug),
-                            ),
-                          );
-                        },
-                      )
-                    : Center(child: Text('No drugs found')),
-              ),
-              // Description Button and Bottom Buttons Section
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    // Description Button
-                    if (selectedDrug != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      DrugDetailScreen(drug: selectedDrug!),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                            child: Text(
-                              'Description', // Button text
-                               style: TextStyle(
-                                 fontWeight: FontWeight.bold, // Bold text
-                                fontSize: 16,                // Optional size adjustment
-                              ),
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: 10),
-                    // Row of Similar, Alternative, and Image Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: selectedDrug != null
-                                ? _showSimilarDrugs
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                            child: Text(
-                              'Similar',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: selectedDrug != null
-                                ? _showAlternativeDrugs
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                            child: Text(
-                              'Alternative',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: selectedDrug != null
-                                ? _showDrugImage
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                            child: Text(
-                              'Image',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('${drug.genericName}'),
+                                      ],
+                                    ),
+                                    isThreeLine: true,
+                                    onTap: () => _onDrugTap(drug),
+                                  ),
+                                );
+                              },
+                            )
+                          : Center(child: Text('No drugs found')),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-
+                    // Description Button and Bottom Buttons Section
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          // Description Button
+                          if (selectedDrug != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _onDescriptionButtonClick,
+                                  style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Description',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          SizedBox(height: 10),
+                          // Row of Similar, Alternative, and Image Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: selectedDrug != null
+                                      ? _showSimilarDrugs
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Similar',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: selectedDrug != null
+                                      ? _showAlternativeDrugs
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Alternative',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: selectedDrug != null
+                                      ? _showDrugImage
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Image',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
     );
-  ),
+  }
 }
 
 class DrugDetailScreen extends StatelessWidget {
@@ -438,7 +424,7 @@ class DrugDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // White background
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(drug.tradeName),
       ),
@@ -498,7 +484,7 @@ class DrugDetailScreen extends StatelessWidget {
             ],
           ),
         ),
-     ),
+      ),
     );
   }
 }
