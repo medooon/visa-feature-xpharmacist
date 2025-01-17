@@ -1,5 +1,3 @@
-// lib/services/drug_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
@@ -93,5 +91,14 @@ class DrugService {
       if (remoteParts[i] < localParts[i]) return false;
     }
     return false;
+  }
+
+  // Check if local data exists
+  Future<bool> hasLocalData() async {
+    var drugsBox = Hive.box<Drug>('drugsBox');
+    var versionBox = Hive.box<DataVersion>('dataVersionBox');
+
+    // Check if both boxes are not empty
+    return drugsBox.isNotEmpty && versionBox.isNotEmpty;
   }
 }
