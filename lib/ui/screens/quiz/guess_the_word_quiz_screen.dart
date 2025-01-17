@@ -190,15 +190,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
   void _onDrugTap(Drug drug) {
     setState(() {
-      selectedDrug = drug; // Only set the selected drug
+      selectedDrug = drug; // Update the selected drug
     });
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DrugDetailScreen(drug: drug),
-      ),
-    );
   }
 
   void _onDescriptionButtonClick() {
@@ -307,7 +300,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                       ],
                                     ),
                                     isThreeLine: true,
-                                    onTap: () => _onDrugTap(drug),
+                                    onTap: () => _onDrugTap(drug), // Update selected drug
                                   ),
                                 );
                               },
@@ -319,29 +312,32 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: [
-                          // Description Button
-                          if (selectedDrug != null)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _onDescriptionButtonClick,
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
+                          // Description Button (always visible)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: selectedDrug != null
+                                    ? _onDescriptionButtonClick
+                                    : null, // Disable if no drug is selected
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
                                   ),
-                                  child: Text(
-                                    'Description',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                ),
+                                child: Text(
+                                  selectedDrug != null
+                                      ? 'Description: ${selectedDrug!.tradeName}'
+                                      : 'Description', // Show trade name if selected
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                   ),
                                 ),
                               ),
                             ),
+                          ),
                           SizedBox(height: 10),
                           // Row of Similar, Alternative, and Image Buttons
                           Row(
@@ -415,6 +411,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     );
   }
 }
+
 
 class DrugDetailScreen extends StatelessWidget {
   final Drug drug;
