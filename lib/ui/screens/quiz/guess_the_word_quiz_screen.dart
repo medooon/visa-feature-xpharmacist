@@ -169,7 +169,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
 /// Show Google Images (in-app) if a drug is selected
   Future<void> _showDrugImage() async {
-    if (_selectedDrug == null) {
+    if (selectedDrug == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No drug selected')),
       );
