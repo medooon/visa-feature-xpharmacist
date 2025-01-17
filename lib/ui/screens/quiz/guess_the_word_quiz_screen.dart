@@ -197,13 +197,12 @@ void _onDrugTap(Drug drug) {
     selectedDrug = drug; // Only set the selected drug
   });
 
-  // Remove navigation logic here
-  // Navigator.push(
-  //   context,
-  //   MaterialPageRoute(
-  //     builder: (context) => DrugDetailScreen(drug: drug),
-  //   ),
-  // );
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => DrugDetailScreen(drug: drug),
+    ),
+   );
 }
 
 
@@ -432,7 +431,7 @@ void _onDrugTap(Drug drug) {
 }
 
 class DrugDetailScreen extends StatelessWidget {
-final Drug drug;
+  final Drug drug;
 
   DrugDetailScreen({required this.drug});
 
@@ -495,14 +494,11 @@ final Drug drug;
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
               ),
               SizedBox(height: 5),
-              Text(
-                drug.description,
-                style: TextStyle(fontSize: 16),
-              ),
+              Text(drug.description, style: TextStyle(fontSize: 16)),
             ],
           ),
         ),
-      ),
+     ),
     );
   }
 }
