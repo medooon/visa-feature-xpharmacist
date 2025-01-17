@@ -247,44 +247,44 @@ void _onDrugTap(Drug drug) {
               // Search and Results Section
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          labelText: 'Search',
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    DropdownButton<String>(
-                      value: searchCriteria,
-                        dropdownColor: Colors.white, // Dropdown background color
-                         style: TextStyle(
-                          color: Colors.black, // Text color
-                             fontSize: 16, // Optional: Adjust font size
-                                 ),
-                      items: searchCriteriaOptions
-                          .map((criteria) => DropdownMenuItem<String>(
-                                value: criteria,
-                                child: Text(criteria),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            searchCriteria = value;
-                            _search();
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              child: Row(
+             children: [
+             Expanded(
+             child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Search',
+               prefixIcon: Icon(Icons.search),
+               border: OutlineInputBorder(),
+            ),
+           ),
+          ),
+      SizedBox(width: 10),
+      DropdownButton<String>(
+        value: searchCriteria,
+        dropdownColor: Colors.white, // Dropdown background color
+        style: TextStyle(
+          color: Colors.black, // Text color
+          fontSize: 16, // Optional: Adjust font size
+        ),
+        items: searchCriteriaOptions
+            .map((criteria) => DropdownMenuItem<String>(
+                  value: criteria,
+                  child: Text(criteria),
+                ))
+            .toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              searchCriteria = value;
+              _search();
+            });
+          }
+        },
+      ),
+    ],
+  ),
+)
               Expanded(
                 child: filteredDrugs.isNotEmpty
                     ? ListView.builder(
