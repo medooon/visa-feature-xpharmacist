@@ -45,28 +45,35 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     super.dispose();
   }
 
-  Future<void> loadDrugs() async {
-    try {
-      bool shouldFetch = await _drugService.isRemoteDataNewer();
+Future<void> loadDrugs() async {
+  try {
+    // Check if local data exists
+    bool hasLocalData = await _drugService.hasLocalData();
 
-      if (shouldFetch) {
-        await _drugService.fetchAndStoreDrugs();
-      }
-
-      setState(() {
-        allDrugs = _drugService.getAllDrugs();
-        filteredDrugs = []; // Do not show drugs before searching
-        DataVersion? localVersion = _drugService.getLocalVersion();
-        currentVersion = localVersion?.version ?? 'Unknown';
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Failed to load drugs: $e';
-        isLoading = false;
-      });
+    if (!hasLocalData) {
+      // If no local data exists, fetch data from the server
+      await _drugService.fetchAndStoreDrugs();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data fetched from the server.')),
+      );
     }
+
+    // Update the UI with the latest data
+    setState(() {
+      allDrugs = _drugService.getAllDrugs(); // Get all drugs from local storage
+      filteredDrugs = []; // Do not show drugs before searching
+      DataVersion? localVersion = _drugService.getLocalVersion();
+      currentVersion = localVersion?.version ?? 'Unknown'; // Update the version
+      isLoading = false; // Stop loading
+    });
+  } catch (e) {
+    // Handle errors
+    setState(() {
+      errorMessage = 'Failed to load drugs: $e';
+      isLoading = false;
+    });
   }
+}
 
   void _search() {
     final query = searchController.text.toLowerCase();
