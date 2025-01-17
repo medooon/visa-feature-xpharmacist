@@ -176,7 +176,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       return;
     }
 
-    final tradeName = _selectedDrug!['tradeName'] ?? 'N/A';
+    final tradeName = selectedDrug!['tradeName'] ?? 'N/A';
     final googleImagesUrl = 'https://www.google.com/search?tbm=isch&q=$tradeName';
 
     // Launch in an in-app WebView
@@ -432,7 +432,7 @@ void _onDrugTap(Drug drug) {
 }
 
 class DrugDetailScreen extends StatelessWidget {
-  final Drug drug;
+final Drug drug;
 
   DrugDetailScreen({required this.drug});
 
