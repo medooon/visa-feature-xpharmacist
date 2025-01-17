@@ -421,14 +421,14 @@ void _onDrugTap(Drug drug) {
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
 
     );
-  }
+  ),
 }
 
 class DrugDetailScreen extends StatelessWidget {
