@@ -6,7 +6,7 @@ import 'package:flutterquiz/app/routes.dart';
 import 'package:flutterquiz/features/auth/cubits/auth_cubit.dart';
 import 'package:flutterquiz/features/localization/app_localization_cubit.dart';
 import 'package:flutterquiz/features/localization/quiz_language_cubit.dart';
-import 'package:flutterquiz/features/quiz/guess_the_word_quiz_screen.dart'; // Import the GuessTheWordQuizScreen
+import 'package:flutterquiz/ui/quiz/guess_the_word_quiz_screen.dart'; // Import the GuessTheWordQuizScreen
 import 'package:flutterquiz/features/settings/settings_cubit.dart';
 import 'package:flutterquiz/features/system_config/cubits/system_config_cubit.dart';
 import 'package:flutterquiz/ui/widgets/custom_image.dart';
