@@ -6,6 +6,7 @@ import 'package:flutterquiz/app/routes.dart';
 import 'package:flutterquiz/features/auth/cubits/auth_cubit.dart';
 import 'package:flutterquiz/features/localization/app_localization_cubit.dart';
 import 'package:flutterquiz/features/localization/quiz_language_cubit.dart';
+import 'package:flutterquiz/features/quiz/guess_the_word_quiz_screen.dart'; // Import the GuessTheWordQuizScreen
 import 'package:flutterquiz/features/settings/settings_cubit.dart';
 import 'package:flutterquiz/features/system_config/cubits/system_config_cubit.dart';
 import 'package:flutterquiz/ui/widgets/custom_image.dart';
@@ -156,15 +157,33 @@ class _SplashScreenState extends State<SplashScreen>
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Center(
               key: const Key('errorContainer'),
-              child: ErrorContainer(
-                showBackButton: true,
-                errorMessageColor: Theme.of(context).colorScheme.onTertiary,
-                errorMessage: convertErrorCodeToLanguageKey(state.errorCode),
-                onTapRetry: () {
-                  setState(_initAnimations);
-                  _fetchSystemConfig();
-                },
-                showErrorImage: true,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Error message
+                  ErrorContainer(
+                    showBackButton: true,
+                    errorMessageColor: Theme.of(context).colorScheme.onTertiary,
+                    errorMessage: convertErrorCodeToLanguageKey(state.errorCode),
+                    onTapRetry: () {
+                      setState(_initAnimations);
+                      _fetchSystemConfig();
+                    },
+                    showErrorImage: true,
+                  ),
+                  const SizedBox(height: 20), // Spacing between buttons
+                  // Egypt Drug Index button
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to the GuessTheWordQuizScreen (Egypt Drug Index)
+                      Navigator.of(context).pushNamed(Routes.guessTheWord);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue, // Custom button color
+                    ),
+                    child: const Text('Egypt Drug Index'),
+                  ),
+                ],
               ),
             ),
           );
