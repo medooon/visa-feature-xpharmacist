@@ -4,6 +4,8 @@ import 'package:flutterquiz/models/drug.dart';
 import 'package:flutterquiz/services/drug_service.dart';
 import 'package:flutterquiz/models/data_version.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
@@ -30,6 +32,9 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   String currentVersion = 'N/A';
   String searchCriteria = 'Trade Name'; // Default search criterion
   Drug? selectedDrug; // Currently selected drug for the description button
+
+  // URL for the version JSON file
+  final String versionUrl = 'https://x-pharmacist.com/version.json';
 
   @override
   void initState() {
@@ -109,6 +114,17 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     });
   }
 
+  // Fetch version info from the JSON URL
+  Future<Map<String, dynamic>> fetchVersionInfo() async {
+    final response = await http.get(Uri.parse(versionUrl));
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load version info');
+    }
+  }
+
   // Show update dialog if a new version is available
   Future<void> _showUpdateDialog(String remoteVersion) async {
     DataVersion? localVersion = _drugService.getLocalVersion();
@@ -155,15 +171,15 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       errorMessage = '';
     });
     try {
-      // Fetch version info from the lightweight endpoint
-      Map<String, dynamic> versionInfo = await _drugService.fetchVersionInfo();
+      // Fetch version info from the JSON URL
+      Map<String, dynamic> versionInfo = await fetchVersionInfo();
       String remoteVersion = versionInfo['version'] ?? 'Unknown';
 
       DataVersion? localVersion = _drugService.getLocalVersion();
       String localVersionStr = localVersion?.version ?? 'Unknown';
 
       // Check if the remote version is newer
-      if (_drugService._isVersionNewer(remoteVersion, localVersionStr)) {
+      if (_isVersionNewer(remoteVersion, localVersionStr)) {
         // Show update dialog
         await _showUpdateDialog(remoteVersion);
       } else {
@@ -188,6 +204,19 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         SnackBar(content: Text('Error refreshing data: $e')),
       );
     }
+  }
+
+  // Helper method to compare semantic versions
+  bool _isVersionNewer(String remote, String local) {
+    List<int> remoteParts = remote.split('.').map(int.parse).toList();
+    List<int> localParts = local.split('.').map(int.parse).toList();
+
+    for (int i = 0; i < remoteParts.length; i++) {
+      if (i >= localParts.length) return true;
+      if (remoteParts[i] > localParts[i]) return true;
+      if (remoteParts[i] < localParts[i]) return false;
+    }
+    return false;
   }
 
   void _showSimilarDrugs() {
@@ -379,7 +408,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                 ),
                                 child: Text(
                                   selectedDrug != null
-                                      ? 'Description: ${selectedDrug!.tradeName}'
+                                      ? '${selectedDrug!.tradeName}'
                                       : 'Description', // Show trade name if selected
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
