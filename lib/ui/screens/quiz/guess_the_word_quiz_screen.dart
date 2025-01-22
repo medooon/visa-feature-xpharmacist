@@ -45,35 +45,35 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     super.dispose();
   }
 
-Future<void> loadDrugs() async {
-  try {
-    // Check if local data exists
-    bool hasLocalData = await _drugService.hasLocalData();
+  Future<void> loadDrugs() async {
+    try {
+      // Check if local data exists
+      bool hasLocalData = await _drugService.hasLocalData();
 
-    if (!hasLocalData) {
-      // If no local data exists, fetch data from the server
-      await _drugService.fetchAndStoreDrugs();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Data fetched from the server.')),
-      );
+      if (!hasLocalData) {
+        // If no local data exists, fetch data from the server
+        await _drugService.fetchAndStoreDrugs();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data fetched from the server.')),
+        );
+      }
+
+      // Update the UI with the latest data
+      setState(() {
+        allDrugs = _drugService.getAllDrugs(); // Get all drugs from local storage
+        filteredDrugs = []; // Do not show drugs before searching
+        DataVersion? localVersion = _drugService.getLocalVersion();
+        currentVersion = localVersion?.version ?? 'Unknown'; // Update the version
+        isLoading = false; // Stop loading
+      });
+    } catch (e) {
+      // Handle errors
+      setState(() {
+        errorMessage = 'Failed to load drugs: $e';
+        isLoading = false;
+      });
     }
-
-    // Update the UI with the latest data
-    setState(() {
-      allDrugs = _drugService.getAllDrugs(); // Get all drugs from local storage
-      filteredDrugs = []; // Do not show drugs before searching
-      DataVersion? localVersion = _drugService.getLocalVersion();
-      currentVersion = localVersion?.version ?? 'Unknown'; // Update the version
-      isLoading = false; // Stop loading
-    });
-  } catch (e) {
-    // Handle errors
-    setState(() {
-      errorMessage = 'Failed to load drugs: $e';
-      isLoading = false;
-    });
   }
-}
 
   void _search() {
     final query = searchController.text.toLowerCase();
@@ -109,19 +109,63 @@ Future<void> loadDrugs() async {
     });
   }
 
+  // Show update dialog if a new version is available
+  Future<void> _showUpdateDialog(String remoteVersion) async {
+    DataVersion? localVersion = _drugService.getLocalVersion();
+    String localVersionStr = localVersion?.version ?? 'Unknown';
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('New Version Available'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Current Version: $localVersionStr'),
+              Text('New Version: $remoteVersion'),
+              SizedBox(height: 10),
+              Text('Updating will take a minute. Do you want to proceed?'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Close the dialog
+                await _refreshData(); // Fetch and update data
+              },
+              child: Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshData() async {
     setState(() {
       isLoading = true;
       errorMessage = '';
     });
     try {
-      bool shouldFetch = await _drugService.isRemoteDataNewer();
+      // Fetch version info from the lightweight endpoint
+      Map<String, dynamic> versionInfo = await _drugService.fetchVersionInfo();
+      String remoteVersion = versionInfo['version'] ?? 'Unknown';
 
-      if (shouldFetch) {
-        await _drugService.fetchAndStoreDrugs();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Data has been updated to version $currentVersion.')),
-        );
+      DataVersion? localVersion = _drugService.getLocalVersion();
+      String localVersionStr = localVersion?.version ?? 'Unknown';
+
+      // Check if the remote version is newer
+      if (_drugService._isVersionNewer(remoteVersion, localVersionStr)) {
+        // Show update dialog
+        await _showUpdateDialog(remoteVersion);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Data is already up to date.')),
@@ -418,7 +462,6 @@ Future<void> loadDrugs() async {
     );
   }
 }
-
 
 class DrugDetailScreen extends StatelessWidget {
   final Drug drug;
