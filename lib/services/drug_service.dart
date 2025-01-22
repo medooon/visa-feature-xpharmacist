@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
@@ -7,7 +8,6 @@ import 'package:flutterquiz/models/data_version.dart';
 class DrugService {
   // Replace with your actual JSON URL
   final String dataUrl = 'https://egypt.moazpharmacy.com/products.json';
-  final String versionUrl = 'https://x-pharmacist.com/version.json'; // Lightweight version endpoint
 
   // Fetch drug data from the server
   Future<Map<String, dynamic>> fetchRawDrugData() async {
@@ -17,17 +17,6 @@ class DrugService {
       return json.decode(response.body);
     } else {
       throw Exception('Failed to load drug data');
-    }
-  }
-
-  // Fetch version info from the lightweight endpoint
-  Future<Map<String, dynamic>> fetchVersionInfo() async {
-    final response = await http.get(Uri.parse(versionUrl));
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load version info');
     }
   }
 
@@ -78,9 +67,9 @@ class DrugService {
   // Check if remote version is newer than local
   Future<bool> isRemoteDataNewer() async {
     try {
-      // Fetch version info from the lightweight endpoint
-      Map<String, dynamic> versionInfo = await fetchVersionInfo();
-      String remoteVersion = versionInfo['version'] ?? '0.0.0';
+      Map<String, dynamic> rawData = await fetchRawDrugData();
+
+      String remoteVersion = rawData['version'] ?? '0.0.0';
 
       DataVersion? localVersion = getLocalVersion();
       String localVersionStr = localVersion?.version ?? '0.0.0';
