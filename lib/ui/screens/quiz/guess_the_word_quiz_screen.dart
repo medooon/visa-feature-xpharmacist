@@ -90,6 +90,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       return;
     }
 
+    // Replace spaces with wildcards (.*)
     String pattern = '^' + RegExp.escape(query).replaceAll(r'\*', '.*').replaceAll(r'\ ', '.*');
     RegExp regex = RegExp(pattern, caseSensitive: false);
 
@@ -116,12 +117,16 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
   // Fetch version info from the JSON URL
   Future<Map<String, dynamic>> fetchVersionInfo() async {
-    final response = await http.get(Uri.parse(versionUrl));
+    try {
+      final response = await http.get(Uri.parse(versionUrl));
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load version info');
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load version info');
+      }
+    } catch (e) {
+      throw Exception('No internet connection or there is a problem');
     }
   }
 
@@ -197,11 +202,11 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       });
     } catch (e) {
       setState(() {
-        errorMessage = 'Failed to refresh drugs: $e';
+        errorMessage = 'No internet connection or there is a problem';
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error refreshing data: $e')),
+        SnackBar(content: Text(errorMessage)),
       );
     }
   }
@@ -408,7 +413,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                 ),
                                 child: Text(
                                   selectedDrug != null
-                                      ? '${selectedDrug!.tradeName}'
+                                      ? 'Description: ${selectedDrug!.tradeName}'
                                       : 'Description', // Show trade name if selected
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
