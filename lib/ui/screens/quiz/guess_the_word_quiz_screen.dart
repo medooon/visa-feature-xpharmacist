@@ -31,7 +31,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   String currentVersion = 'N/A';
   String searchCriteria = 'Trade Name';
   Drug? selectedDrug;
-  String? selectedCountry; // Track selected country
+  String? selectedCountry;
 
   final String versionUrl = 'https://x-pharmacist.com/version.json';
 
@@ -49,10 +49,193 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     super.dispose();
   }
 
-  // Existing loadDrugs, _search, fetchVersionInfo, _showUpdateDialog, 
-  // _refreshData, _isVersionNewer, _showSimilarDrugs, _showAlternativeDrugs,
-  // _showDrugImage, _onDrugTap methods remain the same...
+  // Load drugs from local storage or fetch from server
+  Future<void> loadDrugs() async {
+    try {
+      bool hasLocalData = await _drugService.hasLocalData();
 
+      if (!hasLocalData) {
+        await _drugService.fetchAndStoreDrugs();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data fetched from the server.')),
+        );
+      }
+
+      setState(() {
+        allDrugs = _drugService.getAllDrugs();
+        filteredDrugs = [];
+        DataVersion? localVersion = _drugService.getLocalVersion();
+        currentVersion = localVersion?.version ?? 'Unknown';
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Failed to load drugs: $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  // Refresh data from the server
+  Future<void> _refreshData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+    try {
+      Map<String, dynamic> versionInfo = await fetchVersionInfo();
+      String remoteVersion = versionInfo['version'] ?? 'Unknown';
+
+      DataVersion? localVersion = _drugService.getLocalVersion();
+      String localVersionStr = localVersion?.version ?? 'Unknown';
+
+      if (_isVersionNewer(remoteVersion, localVersionStr)) {
+        await _showUpdateDialog(remoteVersion);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data is already up to date.')),
+        );
+      }
+
+      setState(() {
+        allDrugs = _drugService.getAllDrugs();
+        _search();
+        DataVersion? localVersion = _drugService.getLocalVersion();
+        currentVersion = localVersion?.version ?? 'Unknown';
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'No internet connection or there is a problem';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
+
+  // Fetch version info from the server
+  Future<Map<String, dynamic>> fetchVersionInfo() async {
+    try {
+      final response = await http.get(Uri.parse(versionUrl));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load version info');
+      }
+    } catch (e) {
+      throw Exception('No internet connection or there is a problem');
+    }
+  }
+
+  // Show update dialog if a new version is available
+  Future<void> _showUpdateDialog(String remoteVersion) async {
+    DataVersion? localVersion = _drugService.getLocalVersion();
+    String localVersionStr = localVersion?.version ?? 'Unknown';
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('New Version Available'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Current Version: $localVersionStr'),
+              Text('New Version: $remoteVersion'),
+              const SizedBox(height: 10),
+              const Text('Updating will take a minute. Do you want to proceed?'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _refreshData();
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Compare semantic versions
+  bool _isVersionNewer(String remote, String local) {
+    List<int> remoteParts = remote.split('.').map(int.parse).toList();
+    List<int> localParts = local.split('.').map(int.parse).toList();
+
+    for (int i = 0; i < remoteParts.length; i++) {
+      if (i >= localParts.length) return true;
+      if (remoteParts[i] > localParts[i]) return true;
+      if (remoteParts[i] < localParts[i]) return false;
+    }
+    return false;
+  }
+
+  // Handle drug tap
+  void _onDrugTap(Drug drug) {
+    setState(() {
+      selectedDrug = drug;
+    });
+  }
+
+  // Show similar drugs
+  void _showSimilarDrugs() {
+    if (selectedDrug == null) return;
+
+    setState(() {
+      filteredDrugs = allDrugs
+          .where((drug) =>
+              drug.genericName.toLowerCase() ==
+              selectedDrug!.genericName.toLowerCase())
+          .toList();
+    });
+  }
+
+  // Show alternative drugs
+  void _showAlternativeDrugs() {
+    if (selectedDrug == null) return;
+
+    setState(() {
+      filteredDrugs = allDrugs
+          .where((drug) =>
+              drug.pharmacology.toLowerCase() ==
+              selectedDrug!.pharmacology.toLowerCase())
+          .toList();
+    });
+  }
+
+  // Show drug image in Google Images
+  Future<void> _showDrugImage() async {
+    if (selectedDrug == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No drug selected')),
+      );
+      return;
+    }
+
+    final tradeName = selectedDrug!.tradeName ?? 'N/A';
+    final googleImagesUrl = 'https://www.google.com/search?tbm=isch&q=$tradeName';
+
+    if (await canLaunchUrl(Uri.parse(googleImagesUrl))) {
+      await launchUrl(Uri.parse(googleImagesUrl), mode: LaunchMode.inAppWebView);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch $googleImagesUrl')),
+      );
+    }
+  }
+
+  // Handle description button click
   void _onDescriptionButtonClick() {
     if (selectedDrug == null) return;
 
@@ -61,32 +244,76 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         (drug) => drug.id == selectedDrug!.descriptionId,
         orElse: () => selectedDrug!,
       );
+
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => DrugDetailScreen(drug: descriptionDrug)),
+        MaterialPageRoute(
+          builder: (context) => DrugDetailScreen(drug: descriptionDrug),
+        ),
       );
     } else {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => DrugDetailScreen(drug: selectedDrug!)),
+        MaterialPageRoute(
+          builder: (context) => DrugDetailScreen(drug: selectedDrug!),
+        ),
       );
     }
   }
 
+  // Filter drugs by country
   void _filterByCountry(String country) {
     setState(() {
       selectedCountry = country;
-      // Don't filter here, just track selection
-      // Actual filtering will happen in _search()
     });
+  }
+
+  // Search and filter drugs
+  void _search() {
+    final query = searchController.text.toLowerCase();
+
+    if (query.length < 2) {
+      setState(() => filteredDrugs = []);
+      return;
+    }
+
+    String pattern = '^${RegExp.escape(query).replaceAll(r'\*', '.*').replaceAll(r'\ ', '.*')}';
+    RegExp regex = RegExp(pattern, caseSensitive: false);
+
+    List<Drug> tempList = allDrugs.where((drug) {
+      String fieldToSearch;
+      switch (searchCriteria) {
+        case 'Generic Name':
+          fieldToSearch = drug.genericName.toLowerCase();
+          break;
+        case 'Pharmacology':
+          fieldToSearch = drug.pharmacology.toLowerCase();
+          break;
+        default:
+          fieldToSearch = drug.tradeName.toLowerCase();
+      }
+      return regex.hasMatch(fieldToSearch);
+    }).toList();
+
+    // Apply country filter after search
+    if (selectedCountry != null) {
+      tempList = tempList.where((drug) {
+        List<String> keValues = drug.ke.split(',');
+        return selectedCountry == 'Egypt'
+            ? (keValues.contains('1') || keValues.contains('2'))
+            : (keValues.contains('1') || keValues.contains('3'));
+      }).toList();
+    }
+
+    setState(() => filteredDrugs = tempList);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove back arrow
-        title: const SizedBox.shrink(), // Remove title
+        automaticallyImplyLeading: false,
+        title: const SizedBox.shrink(),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -98,8 +325,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           ElevatedButton(
             onPressed: () => _filterByCountry('Egypt'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCountry == 'Egypt' 
-                  ? Colors.blue[800] 
+              backgroundColor: selectedCountry == 'Egypt'
+                  ? Colors.blue[800]
                   : Colors.blue[400],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -115,8 +342,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           ElevatedButton(
             onPressed: () => _filterByCountry('Saudi'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCountry == 'Saudi' 
-                  ? Colors.green[800] 
+              backgroundColor: selectedCountry == 'Saudi'
+                  ? Colors.green[800]
                   : Colors.green[400],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -217,8 +444,8 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                               ),
                             ),
                             child: Text(
-                              selectedDrug != null 
-                                  ? 'Description: ${selectedDrug!.tradeName}' 
+                              selectedDrug != null
+                                  ? 'Description: ${selectedDrug!.tradeName}'
                                   : 'Description',
                               style: const TextStyle(
                                 color: Colors.white,
@@ -298,53 +525,12 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 ),
     );
   }
-
-  // Modified _search method to include country filtering
-  void _search() {
-    final query = searchController.text.toLowerCase();
-
-    if (query.length < 2) {
-      setState(() => filteredDrugs = []);
-      return;
-    }
-
-    String pattern = '^${RegExp.escape(query).replaceAll(r'\*', '.*').replaceAll(r'\ ', '.*')}';
-    RegExp regex = RegExp(pattern, caseSensitive: false);
-
-    List<Drug> tempList = allDrugs.where((drug) {
-      String fieldToSearch;
-      switch (searchCriteria) {
-        case 'Generic Name':
-          fieldToSearch = drug.genericName.toLowerCase();
-          break;
-        case 'Pharmacology':
-          fieldToSearch = drug.pharmacology.toLowerCase();
-          break;
-        default:
-          fieldToSearch = drug.tradeName.toLowerCase();
-      }
-      return regex.hasMatch(fieldToSearch);
-    }).toList();
-
-    // Apply country filter after search
-    if (selectedCountry != null) {
-      tempList = tempList.where((drug) {
-        List<String> keValues = drug.ke.split(',');
-        return selectedCountry == 'Egypt' 
-            ? (keValues.contains('1') || keValues.contains('2'))
-            : (keValues.contains('1') || keValues.contains('3'));
-      }).toList();
-    }
-
-    setState(() => filteredDrugs = tempList);
-  }
 }
 
-// DrugDetailScreen remains the same...
 class DrugDetailScreen extends StatelessWidget {
   final Drug drug;
 
-  DrugDetailScreen({required this.drug});
+  const DrugDetailScreen({Key? key, required this.drug}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -361,51 +547,51 @@ class DrugDetailScreen extends StatelessWidget {
             children: [
               Text(
                 drug.tradeName,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Generic Name:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
               ),
               Text(
                 drug.genericName,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Pharmacology:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
               ),
               Text(
                 drug.pharmacology,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Company:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
               ),
               Text(
                 drug.company,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Route:',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
               ),
               Text(
                 drug.route,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Description:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
               ),
-              SizedBox(height: 5),
-              Text(drug.description, style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 5),
+              Text(drug.description, style: const TextStyle(fontSize: 16)),
             ],
           ),
         ),
