@@ -8,7 +8,7 @@ import 'package:excel/excel.dart';
 
 class DrugService {
   // Replace with your actual XLSX URL
-  final String dataUrl = 'https://egypt.moazpharmacy.com/products.xlsx';
+  final String dataUrl = 'https://egypt.moazpharmacy.com/egy.xlsx';
 
   // Fetch drug data from the server
   Future<Map<String, dynamic>> fetchRawDrugData() async {
