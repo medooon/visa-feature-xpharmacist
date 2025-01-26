@@ -69,20 +69,20 @@ class Drug extends HiveObject {
 
   factory Drug.fromJson(Map<String, dynamic> json) {
     return Drug(
-      id: json['id'] ?? 'N/A',
-      ke: json['ke'] ?? 'N/A',
-      tradeName: json['trade_name'] ?? 'N/A',
-      genericName: json['generic_name'] ?? 'N/A',
-      pharmacology: json['pharmacology'] ?? 'N/A',
-      arabicName: json['arabic'] ?? 'N/A',
+      id: json['id'] ?? '',
+      ke: json['ke'] ?? '',
+      tradeName: json['trade_name'] ?? '',
+      genericName: json['generic_name'] ?? '',
+      pharmacology: json['pharmacology'] ?? '',
+      arabicName: json['arabic'] ?? '',
       price: json['price'] != null ? (json['price'] as num).toDouble() : 0.0,
-      company: json['company'] ?? 'N/A',
-      description: json['description'] ?? 'No description available.',
-      route: json['route'] ?? 'N/A',
-      temperature: json['temperature'] ?? 'N/A',
-      otc: json['otc'] ?? 'N/A',
-      pharmacy: json['pharmacy'] ?? 'N/A',
-      descriptionId: json['description_id'] ?? 'N/A',
+      company: json['company'] ?? '',
+      description: json['description'] ?? '',
+      route: json['route'] ?? '',
+      temperature: json['temperature'] ?? '',
+      otc: json['otc'] ?? '',
+      pharmacy: json['pharmacy'] ?? '',
+      descriptionId: json['description_id'] ?? '',
       isCalculated: json['is_calculated'] ?? false,
     );
   }
