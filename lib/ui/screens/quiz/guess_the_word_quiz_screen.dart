@@ -337,11 +337,11 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           ),
           TextButton(
             onPressed: () => _filterByCountry('Egypt'),
-            child: Text('Egypt', style: TextStyle(color: selectedCountry == 'Egypt' ? Colors.white : Colors.grey)),
+            child: Text('Egypt', style: TextStyle(color: selectedCountry == 'Egypt' ? Colors.red : Colors.grey)),
           ),
           TextButton(
             onPressed: () => _filterByCountry('Saudi'),
-            child: Text('Saudi', style: TextStyle(color: selectedCountry == 'Saudi' ? Colors.white : Colors.grey)),
+            child: Text('Saudi', style: TextStyle(color: selectedCountry == 'Saudi' ? Colors.red : Colors.grey)),
           ),
         ],
       ),
