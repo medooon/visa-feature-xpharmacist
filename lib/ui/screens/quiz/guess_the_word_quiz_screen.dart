@@ -32,6 +32,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   String currentVersion = 'N/A';
   String searchCriteria = 'Trade Name'; // Default search criterion
   Drug? selectedDrug; // Currently selected drug for the description button
+  String selectedCountry = 'Egypt'; // Default country filter
 
   // URL for the version JSON file
   final String versionUrl = 'https://x-pharmacist.com/version.json';
@@ -282,12 +283,28 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   void _onDescriptionButtonClick() {
     if (selectedDrug == null) return;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DrugDetailScreen(drug: selectedDrug!),
-      ),
-    );
+    // Check if the drug has a description_id
+    if (selectedDrug!.descriptionId.isNotEmpty) {
+      // Find the drug with the matching description_id
+      Drug? descriptionDrug = allDrugs.firstWhere(
+        (drug) => drug.id == selectedDrug!.descriptionId,
+        orElse: () => selectedDrug!,
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DrugDetailScreen(drug: descriptionDrug),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DrugDetailScreen(drug: selectedDrug!),
+        ),
+      );
+    }
   }
 
   final List<String> searchCriteriaOptions = [
@@ -295,6 +312,17 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     'Generic Name',
     'Pharmacology',
   ];
+
+  void _filterByCountry(String country) {
+    setState(() {
+      selectedCountry = country;
+      if (country == 'Egypt') {
+        filteredDrugs = allDrugs.where((drug) => drug.ke.contains('1') || drug.ke.contains('2')).toList();
+      } else if (country == 'Saudi') {
+        filteredDrugs = allDrugs.where((drug) => drug.ke.contains('1') || drug.ke.contains('3')).toList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +334,14 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
             icon: Icon(Icons.refresh),
             onPressed: _refreshData,
             tooltip: 'Refresh Data',
+          ),
+          TextButton(
+            onPressed: () => _filterByCountry('Egypt'),
+            child: Text('Egypt', style: TextStyle(color: selectedCountry == 'Egypt' ? Colors.white : Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => _filterByCountry('Saudi'),
+            child: Text('Saudi', style: TextStyle(color: selectedCountry == 'Saudi' ? Colors.white : Colors.grey)),
           ),
         ],
       ),
@@ -562,10 +598,3 @@ class DrugDetailScreen extends StatelessWidget {
               ),
               SizedBox(height: 5),
               Text(drug.description, style: TextStyle(fontSize: 16)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
