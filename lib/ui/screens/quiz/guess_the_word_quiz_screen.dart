@@ -598,3 +598,10 @@ class DrugDetailScreen extends StatelessWidget {
               ),
               SizedBox(height: 5),
               Text(drug.description, style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
