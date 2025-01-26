@@ -1,20 +1,71 @@
-
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:flutterquiz/models/drug.dart';
 import 'package:flutterquiz/models/data_version.dart';
+import 'package:excel/excel.dart';
 
 class DrugService {
-  // Replace with your actual JSON URL
-  final String dataUrl = 'https://egypt.moazpharmacy.com/products.json';
+  // Replace with your actual XLSX URL
+  final String dataUrl = 'https://egypt.moazpharmacy.com/egy.xlsx';
 
   // Fetch drug data from the server
   Future<Map<String, dynamic>> fetchRawDrugData() async {
     final response = await http.get(Uri.parse(dataUrl));
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      Uint8List bytes = response.bodyBytes;
+      var excel = Excel.decodeBytes(bytes);
+
+      // Initialize a map to store data from all sheets
+      Map<String, dynamic> rawData = {
+        'drugs': [],
+        'version': '0.0.0', // Default version
+        'last_updated': DateTime.now().toUtc().toIso8601String(), // Default date
+      };
+
+      // Parse metadata sheet
+      if (excel.tables.containsKey('metadata')) {
+        var metadataSheet = excel.tables['metadata'];
+        for (var row in metadataSheet.rows) {
+          if (row[0]?.value == null) continue; // Skip header row
+          String key = row[0]?.value.toString();
+          String value = row[1]?.value.toString();
+          if (key == 'version') {
+            rawData['version'] = value;
+          } else if (key == 'last_updated') {
+            rawData['last_updated'] = value;
+          }
+        }
+      }
+
+      // Parse drugs sheet (egy)
+      if (excel.tables.containsKey('egy')) {
+        var drugsSheet = excel.tables['egy'];
+        for (var row in drugsSheet.rows) {
+          if (row[0]?.value == null) continue; // Skip header row
+          rawData['drugs'].add({
+            'id': row[0]?.value.toString(),
+            'ke': row[1]?.value.toString(),
+            'trade_name': row[2]?.value.toString(),
+            'generic_name': row[3]?.value.toString(),
+            'pharmacology': row[4]?.value.toString(),
+            'arabic': row[5]?.value.toString(),
+            'price': row[6]?.value,
+            'company': row[7]?.value.toString(),
+            'description': row[8]?.value.toString(),
+            'route': row[9]?.value.toString(),
+            'temperature': row[10]?.value.toString(),
+            'otc': row[11]?.value.toString(),
+            'pharmacy': row[12]?.value.toString(),
+            'description_id': row[13]?.value.toString(),
+            'is_calculated': row[14]?.value == 1, // Assuming 1 for true, 0 for false
+          });
+        }
+      }
+
+      return rawData;
     } else {
       throw Exception('Failed to load drug data');
     }
