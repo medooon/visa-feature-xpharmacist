@@ -1,599 +1,241 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:flutterquiz/models/drug.dart';
-import 'package:flutterquiz/services/drug_service.dart';
-import 'package:flutterquiz/models/data_version.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-class GuessTheWordQuizScreen extends StatefulWidget {
-  const GuessTheWordQuizScreen({Key? key}) : super(key: key);
+class IllnessData {
+  final String system;
+  final String name;
+  final String treatment1;
+  final String treatment2;
+  final String treatment3;
+  final String treatment4;
+  final String complementary;
+  final String cautions;
+  final List<String> imageUrls;
+  final int caseAvailability;
 
-  static Route route(RouteSettings settings) {
-    return MaterialPageRoute(
-      builder: (_) => const GuessTheWordQuizScreen(),
-      settings: settings,
-    );
-  }
-
-  @override
-  _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
+  IllnessData({
+    required this.system,
+    required this.name,
+    required this.treatment1,
+    required this.treatment2,
+    required this.treatment3,
+    required this.treatment4,
+    required this.complementary,
+    required this.cautions,
+    required this.imageUrls,
+    required this.caseAvailability,
+  });
 }
 
-class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
-  final DrugService _drugService = DrugService();
-  List<Drug> allDrugs = [];
-  List<Drug> filteredDrugs = [];
-  TextEditingController searchController = TextEditingController();
-  bool isLoading = true;
-  String errorMessage = '';
-  String currentVersion = 'N/A';
-  String searchCriteria = 'Trade Name';
-  Drug? selectedDrug;
-  String? selectedCountry;
+class PharmacistScreen extends StatefulWidget {
+  @override
+  _PharmacistScreenState createState() => _PharmacistScreenState();
+}
 
-  final String versionUrl = 'https://x-pharmacist.com/version.json';
+class _PharmacistScreenState extends State<PharmacistScreen> {
+  String? selectedCountry = 'Egypt';
+  String? selectedSystem;
+  String? selectedIllness;
+  List<IllnessData> illnessesList = []; // Load from your data source
+  List<String> systemsList = [];
+  List<IllnessData> filteredIllnesses = [];
 
   @override
   void initState() {
     super.initState();
-    loadDrugs();
-    searchController.addListener(_search);
+    // TODO: Load initial data from your data source
+    // Mock data for demonstration
+    illnessesList = [
+      IllnessData(
+        system: 'GIT',
+        name: 'Constipation',
+        treatment1: 'Treatment 1 for Egypt',
+        treatment2: 'Treatment 2 for Egypt',
+        treatment3: '',
+        treatment4: '',
+        complementary: 'Complementary for Egypt',
+        cautions: 'Cautions for Egypt',
+        imageUrls: ['https://example.com/image1.jpg'],
+        caseAvailability: 1,
+      ),
+      // Add more mock data
+    ];
+    systemsList = _getUniqueSystems();
   }
 
-  @override
-  void dispose() {
-    searchController.removeListener(_search);
-    searchController.dispose();
-    super.dispose();
+  List<String> _getUniqueSystems() {
+    return illnessesList.map((e) => e.system).toSet().toList();
   }
 
-  // Load drugs from local storage or fetch from server
-  Future<void> loadDrugs() async {
-    try {
-      bool hasLocalData = await _drugService.hasLocalData();
-
-      if (!hasLocalData) {
-        await _drugService.fetchAndStoreDrugs();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data fetched from the server.')),
-        );
-      }
-
-      setState(() {
-        allDrugs = _drugService.getAllDrugs();
-        filteredDrugs = [];
-        DataVersion? localVersion = _drugService.getLocalVersion();
-        currentVersion = localVersion?.version ?? 'Unknown';
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Failed to load drugs: $e';
-        isLoading = false;
-      });
-    }
-  }
-
-  // Refresh data from the server
-  Future<void> _refreshData() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-    try {
-      Map<String, dynamic> versionInfo = await fetchVersionInfo();
-      String remoteVersion = versionInfo['version'] ?? 'Unknown';
-
-      DataVersion? localVersion = _drugService.getLocalVersion();
-      String localVersionStr = localVersion?.version ?? 'Unknown';
-
-      if (_isVersionNewer(remoteVersion, localVersionStr)) {
-        await _showUpdateDialog(remoteVersion);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data is already up to date.')),
-        );
-      }
-
-      setState(() {
-        allDrugs = _drugService.getAllDrugs();
-        _search();
-        DataVersion? localVersion = _drugService.getLocalVersion();
-        currentVersion = localVersion?.version ?? 'Unknown';
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = 'No internet connection or there is a problem';
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
-    }
-  }
-
-  // Fetch version info from the server
-  Future<Map<String, dynamic>> fetchVersionInfo() async {
-    try {
-      final response = await http.get(Uri.parse(versionUrl));
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load version info');
-      }
-    } catch (e) {
-      throw Exception('No internet connection or there is a problem');
-    }
-  }
-
-  // Show update dialog if a new version is available
-  Future<void> _showUpdateDialog(String remoteVersion) async {
-    DataVersion? localVersion = _drugService.getLocalVersion();
-    String localVersionStr = localVersion?.version ?? 'Unknown';
-
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('New Version Available'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Current Version: $localVersionStr'),
-              Text('New Version: $remoteVersion'),
-              const SizedBox(height: 10),
-              const Text('Updating will take a minute. Do you want to proceed?'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await _refreshData();
-              },
-              child: const Text('Update'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Compare semantic versions
-  bool _isVersionNewer(String remote, String local) {
-    List<int> remoteParts = remote.split('.').map(int.parse).toList();
-    List<int> localParts = local.split('.').map(int.parse).toList();
-
-    for (int i = 0; i < remoteParts.length; i++) {
-      if (i >= localParts.length) return true;
-      if (remoteParts[i] > localParts[i]) return true;
-      if (remoteParts[i] < localParts[i]) return false;
-    }
-    return false;
-  }
-
-  // Handle drug tap
-  void _onDrugTap(Drug drug) {
-    setState(() {
-      selectedDrug = drug;
-    });
-  }
-
-  // Show similar drugs
-  void _showSimilarDrugs() {
-    if (selectedDrug == null) return;
-
-    setState(() {
-      filteredDrugs = allDrugs
-          .where((drug) =>
-              drug.genericName.toLowerCase() ==
-              selectedDrug!.genericName.toLowerCase())
-          .toList();
-    });
-  }
-
-  // Show alternative drugs
-  void _showAlternativeDrugs() {
-    if (selectedDrug == null) return;
-
-    setState(() {
-      filteredDrugs = allDrugs
-          .where((drug) =>
-              drug.pharmacology.toLowerCase() ==
-              selectedDrug!.pharmacology.toLowerCase())
-          .toList();
-    });
-  }
-
-  // Show drug image in Google Images
-  Future<void> _showDrugImage() async {
-    if (selectedDrug == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No drug selected')),
-      );
-      return;
-    }
-
-    final tradeName = selectedDrug!.tradeName ?? 'N/A';
-    final googleImagesUrl = 'https://www.google.com/search?tbm=isch&q=$tradeName';
-
-    if (await canLaunchUrl(Uri.parse(googleImagesUrl))) {
-      await launchUrl(Uri.parse(googleImagesUrl), mode: LaunchMode.inAppWebView);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not launch $googleImagesUrl')),
-      );
-    }
-  }
-
-  // Handle description button click
-  void _onDescriptionButtonClick() {
-    if (selectedDrug == null) return;
-
-    if (selectedDrug!.descriptionId.isNotEmpty) {
-      Drug? descriptionDrug = allDrugs.firstWhere(
-        (drug) => drug.id == selectedDrug!.descriptionId,
-        orElse: () => selectedDrug!,
-      );
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DrugDetailScreen(drug: descriptionDrug),
-        ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DrugDetailScreen(drug: selectedDrug!),
-        ),
-      );
-    }
-  }
-
-  // Filter drugs by country
-  void _filterByCountry(String country) {
-    setState(() {
-      selectedCountry = country;
-    });
-  }
-
-  // Search and filter drugs
-  void _search() {
-    final query = searchController.text.toLowerCase();
-
-    if (query.length < 2) {
-      setState(() => filteredDrugs = []);
-      return;
-    }
-
-    String pattern = '^${RegExp.escape(query).replaceAll(r'\*', '.*').replaceAll(r'\ ', '.*')}';
-    RegExp regex = RegExp(pattern, caseSensitive: false);
-
-    List<Drug> tempList = allDrugs.where((drug) {
-      String fieldToSearch;
-      switch (searchCriteria) {
-        case 'Generic Name':
-          fieldToSearch = drug.genericName.toLowerCase();
-          break;
-        case 'Pharmacology':
-          fieldToSearch = drug.pharmacology.toLowerCase();
-          break;
-        default:
-          fieldToSearch = drug.tradeName.toLowerCase();
-      }
-      return regex.hasMatch(fieldToSearch);
+  void _filterIllnesses() {
+    filteredIllnesses = illnessesList.where((illness) {
+      final countryMatch = selectedCountry == 'Egypt' 
+          ? illness.caseAvailability == 1 || illness.caseAvailability == 3
+          : illness.caseAvailability == 2 || illness.caseAvailability == 3;
+      return illness.system == selectedSystem && countryMatch;
     }).toList();
-
-    // Apply country filter after search
-    if (selectedCountry != null) {
-      tempList = tempList.where((drug) {
-        List<String> keValues = drug.ke.split(',');
-        return selectedCountry == 'Egypt'
-            ? (keValues.contains('1') || keValues.contains('2'))
-            : (keValues.contains('1') || keValues.contains('3'));
-      }).toList();
-    }
-
-    setState(() => filteredDrugs = tempList);
+    selectedIllness = null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const SizedBox.shrink(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
-            tooltip: 'Refresh Data',
-            color: Colors.white,
-          ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: () => _filterByCountry('Egypt'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCountry == 'Egypt'
-                  ? Colors.blue[800]
-                  : Colors.blue[400],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            ),
-            child: const Text(
-              'Egypt',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: () => _filterByCountry('Saudi'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCountry == 'Saudi'
-                  ? Colors.green[800]
-                  : Colors.green[400],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            ),
-            child: const Text(
-              'Saudi',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: searchController,
-                              decoration: InputDecoration(
-                                labelText: 'Search',
-                                prefixIcon: const Icon(Icons.search),
-                                border: const OutlineInputBorder(),
-                                filled: true,
-                                fillColor: Colors.grey[200],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          DropdownButton<String>(
-                            value: searchCriteria,
-                            dropdownColor: Colors.grey[100],
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                            ),
-                            items: const [
-                              DropdownMenuItem(value: 'Trade Name', child: Text('Trade Name')),
-                              DropdownMenuItem(value: 'Generic Name', child: Text('Generic Name')),
-                              DropdownMenuItem(value: 'Pharmacology', child: Text('Pharmacology')),
-                            ],
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  searchCriteria = value;
-                                  _search();
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: filteredDrugs.isNotEmpty
-                          ? ListView.builder(
-                              itemCount: filteredDrugs.length,
-                              itemBuilder: (context, index) {
-                                final drug = filteredDrugs[index];
-                                return Card(
-                                  elevation: 2,
-                                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  child: ListTile(
-                                    title: Text(
-                                      drug.tradeName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    subtitle: Text(drug.genericName),
-                                    onTap: () => _onDrugTap(drug),
-                                  ),
-                                );
-                              },
-                            )
-                          : const Center(child: Text('No drugs found')),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: selectedDrug != null ? _onDescriptionButtonClick : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[800],
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              selectedDrug != null
-                                  ? 'Description: ${selectedDrug!.tradeName}'
-                                  : 'Description',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: selectedDrug != null ? _showSimilarDrugs : null,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[600],
-                                    padding: const EdgeInsets.symmetric(vertical: 15),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Similar',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: selectedDrug != null ? _showAlternativeDrugs : null,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green[600],
-                                    padding: const EdgeInsets.symmetric(vertical: 15),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Alternative',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: selectedDrug != null ? _showDrugImage : null,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange[600],
-                                    padding: const EdgeInsets.symmetric(vertical: 15),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Image',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+    final selectedIllnessData = illnessesList.firstWhere(
+      (e) => e.name == selectedIllness,
+      orElse: () => IllnessData(
+        system: '', name: '', treatment1: '', treatment2: '', treatment3: '', 
+        treatment4: '', complementary: '', cautions: '', imageUrls: [], 
+        caseAvailability: 0),
     );
-  }
-}
 
-class DrugDetailScreen extends StatelessWidget {
-  final Drug drug;
-
-  const DrugDetailScreen({Key? key, required this.drug}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(drug.tradeName),
-      ),
+      appBar: AppBar(title: Text('Pharmacist Treatment Guide')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                drug.tradeName,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Generic Name:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
-              ),
-              Text(
-                drug.genericName,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Pharmacology:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
-              ),
-              Text(
-                drug.pharmacology,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Company:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
-              ),
-              Text(
-                drug.company,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Route:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
-              ),
-              Text(
-                drug.route,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Description:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
-              ),
-              const SizedBox(height: 5),
-              Text(drug.description, style: const TextStyle(fontSize: 16)),
+              _buildCountrySelector(),
+              SizedBox(height: 20),
+              _buildSystemDropdown(),
+              SizedBox(height: 20),
+              _buildIllnessDropdown(),
+              SizedBox(height: 30),
+              if (selectedIllness != null) ...[
+                _buildImageGallery(selectedIllnessData.imageUrls),
+                SizedBox(height: 20),
+                _buildTreatmentSection(selectedIllnessData),
+              ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCountrySelector() {
+    return ToggleButtons(
+      isSelected: [selectedCountry == 'Egypt', selectedCountry == 'Saudi'],
+      onPressed: (index) {
+        setState(() {
+          selectedCountry = index == 0 ? 'Egypt' : 'Saudi';
+          _filterIllnesses();
+        });
+      },
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Egypt'),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Saudi'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSystemDropdown() {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: 'Select System',
+        border: OutlineInputBorder(),
+      ),
+      value: selectedSystem,
+      items: systemsList
+          .map((system) => DropdownMenuItem(
+                value: system,
+                child: Text(system),
+              ))
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          selectedSystem = value;
+          _filterIllnesses();
+        });
+      },
+    );
+  }
+
+  Widget _buildIllnessDropdown() {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: 'Select Illness',
+        border: OutlineInputBorder(),
+      ),
+      value: selectedIllness,
+      items: filteredIllnesses
+          .map((illness) => DropdownMenuItem(
+                value: illness.name,
+                child: Text(illness.name),
+              ))
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          selectedIllness = value;
+        });
+      },
+    );
+  }
+
+  Widget _buildImageGallery(List<String> imageUrls) {
+    if (imageUrls.isEmpty) return SizedBox();
+    return SizedBox(
+      height: 150,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: imageUrls.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrls[index],
+                width: 200,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTreatmentSection(IllnessData data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTreatmentCard('Treatment Solution 1', data.treatment1),
+        _buildTreatmentCard('Treatment Solution 2', data.treatment2),
+        _buildTreatmentCard('Treatment Solution 3', data.treatment3),
+        _buildTreatmentCard('Treatment Solution 4', data.treatment4),
+        _buildTreatmentCard('Complementary Treatment', data.complementary),
+        _buildTreatmentCard('Cautions & Advice', data.cautions),
+      ].where((child) => child != null).toList(),
+    );
+  }
+
+  Widget? _buildTreatmentCard(String title, String? content) {
+    if (content == null || content.isEmpty) return null;
+    
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.blue[800],
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(content),
+          ],
         ),
       ),
     );
