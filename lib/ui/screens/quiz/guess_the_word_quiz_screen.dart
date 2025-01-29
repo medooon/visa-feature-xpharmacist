@@ -26,12 +26,12 @@ class IllnessData {
   });
 }
 
-class PharmacistScreen extends StatefulWidget {
+class GuessTheWordQuizScreen extends StatefulWidget {
   @override
-  _PharmacistScreenState createState() => _PharmacistScreenState();
+  _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
 
-class _PharmacistScreenState extends State<PharmacistScreen> {
+class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   String? selectedCountry = 'Egypt';
   String? selectedSystem;
   String? selectedIllness;
