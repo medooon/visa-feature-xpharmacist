@@ -45,15 +45,14 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   String? selectedCountry = 'Egypt';
   String? selectedSystem;
   String? selectedIllness;
-  List<IllnessData> illnessesList = []; // Load from your data source
+  List<IllnessData> illnessesList = [];
   List<String> systemsList = [];
   List<IllnessData> filteredIllnesses = [];
 
   @override
   void initState() {
     super.initState();
-    // TODO: Load initial data from your data source
-    // Mock data for demonstration
+    // Load mock data
     illnessesList = [
       IllnessData(
         system: 'GIT',
@@ -67,7 +66,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         imageUrls: ['https://example.com/image1.jpg'],
         caseAvailability: 1,
       ),
-      // Add more mock data
     ];
     systemsList = _getUniqueSystems();
   }
@@ -91,13 +89,13 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     final selectedIllnessData = illnessesList.firstWhere(
       (e) => e.name == selectedIllness,
       orElse: () => IllnessData(
-        system: '', name: '', treatment1: '', treatment2: '', treatment3: '', 
-        treatment4: '', complementary: '', cautions: '', imageUrls: [], 
-        caseAvailability: 0),
+        system: '', name: '', treatment1: '', treatment2: '', 
+        treatment3: '', treatment4: '', complementary: '', cautions: '', 
+        imageUrls: [], caseAvailability: 0),
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text('Pharmacist Treatment Guide')),
+      appBar: AppBar(title: const Text('Pharmacist Treatment Guide')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -105,14 +103,14 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildCountrySelector(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildSystemDropdown(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildIllnessDropdown(),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               if (selectedIllness != null) ...[
                 _buildImageGallery(selectedIllnessData.imageUrls),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 _buildTreatmentSection(selectedIllnessData),
               ],
             ],
@@ -221,7 +219,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         _buildTreatmentCard('Treatment Solution 4', data.treatment4),
         _buildTreatmentCard('Complementary Treatment', data.complementary),
         _buildTreatmentCard('Cautions & Advice', data.cautions),
-      ].where((child) => child != null).toList(),
+      ].whereType<Widget>().toList(),
     );
   }
 
@@ -229,7 +227,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     if (content == null || content.isEmpty) return null;
     
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -243,7 +241,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 color: Colors.blue[800],
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(content),
           ],
         ),
