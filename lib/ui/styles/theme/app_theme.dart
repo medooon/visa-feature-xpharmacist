@@ -7,10 +7,11 @@ import 'package:google_fonts/google_fonts.dart';
 enum AppTheme { light, dark }
 
 final appThemeData = {
-  AppTheme.light: ThemeData(
+  AppTheme.light: (Locale locale) => ThemeData(
     brightness: Brightness.light,
     canvasColor: klCanvasColor,
-    fontFamily: GoogleFonts.nunito().fontFamily,
+    // Detect language and set font family
+    fontFamily: _getFontFamily(locale),
     primaryColor: klPrimaryColor,
     primaryTextTheme: GoogleFonts.nunitoTextTheme(),
     cupertinoOverrideTheme: _cupertinoOverrideTheme,
@@ -32,10 +33,10 @@ final appThemeData = {
       surfaceTint: Colors.transparent,
     ),
   ),
-  AppTheme.dark: ThemeData(
+  AppTheme.dark: (Locale locale) => ThemeData(
     primaryTextTheme: GoogleFonts.nunitoTextTheme(),
     textTheme: GoogleFonts.nunitoTextTheme(),
-    fontFamily: GoogleFonts.nunito().fontFamily,
+    fontFamily: _getFontFamily(locale),
     shadowColor: kdPrimaryColor.withValues(alpha: 0.25),
     brightness: Brightness.dark,
     primaryColor: kdPrimaryColor,
@@ -72,6 +73,16 @@ final appThemeData = {
     ),
   ),
 };
+
+// Function to detect language and apply the correct font
+String _getFontFamily(Locale locale) {
+  // Check if the system locale is Arabic
+  if (locale.languageCode == 'ar') {
+    return GoogleFonts.lateef().fontFamily; // Arabic font (Lateef)
+  } else {
+    return GoogleFonts.nunito().fontFamily; // English font (Nunito)
+  }
+}
 
 final _textButtonTheme = TextButtonThemeData(
   style: TextButton.styleFrom(
