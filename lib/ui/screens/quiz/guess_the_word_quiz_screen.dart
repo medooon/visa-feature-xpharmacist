@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -67,6 +68,20 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   bool isLoading = true;
   String? errorMessage;
 
+  // Detect if text contains Arabic characters
+  bool _isArabic(String text) {
+    return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
+  }
+
+  // Get appropriate text style based on language
+  TextStyle _getTextStyle(double fontSize, FontWeight weight, Color color) {
+    return GoogleFonts.lateef(
+      fontSize: fontSize,
+      fontWeight: weight,
+      color: color,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,16 +90,13 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
   Future<void> _loadData() async {
     try {
-      // Replace with your actual data URL
-      final response = await http.get(Uri.parse('https://egypt.moazpharmacy.com/ill.json'));
-      
+      final response = await http.get(Uri.parse('YOUR_DATA_URL_HERE'));
       if (response.statusCode == 200) {
-        final List<dynamic> jsonData = json.decode(response.body);
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        final List<dynamic> jsonData = json.decode(decodedBody);
         illnessesList = jsonData.map((item) => IllnessData.fromJson(item)).toList();
         systemsList = _getUniqueSystems();
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       } else {
         setState(() {
           errorMessage = 'Failed to load data: ${response.statusCode}';
@@ -116,14 +128,23 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.blue[800],
+          ),
+        ),
       );
     }
 
     if (errorMessage != null) {
       return Scaffold(
-        body: Center(child: Text(errorMessage!)),
+        body: Center(
+          child: Text(
+            errorMessage!,
+            style: _getTextStyle(18, FontWeight.normal, Colors.red),
+          ),
+        ),
       );
     }
 
@@ -135,29 +156,38 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         imageUrls: [], caseAvailability: 0),
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pharmacist Treatment Guide'),
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildCountrySelector(),
-              const SizedBox(height: 20),
-              _buildSystemDropdown(),
-              const SizedBox(height: 20),
-              _buildIllnessDropdown(),
-              const SizedBox(height: 30),
-              if (selectedIllness != null) ...[
-                _buildImageGallery(selectedIllnessData.imageUrls),
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Pharmacist Treatment Guide',
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          elevation: 0,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildCountrySelector(),
                 const SizedBox(height: 20),
-                _buildTreatmentSection(selectedIllnessData),
+                _buildSystemDropdown(),
+                const SizedBox(height: 20),
+                _buildIllnessDropdown(),
+                const SizedBox(height: 30),
+                if (selectedIllness != null) ...[
+                  _buildImageGallery(selectedIllnessData.imageUrls),
+                  const SizedBox(height: 20),
+                  _buildTreatmentSection(selectedIllnessData),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -195,7 +225,13 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           _filterIllnesses();
         });
       },
-      child: Text(country),
+      child: Text(
+        country,
+        style: GoogleFonts.nunito(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -203,12 +239,15 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: 'Select System',
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        labelStyle: GoogleFonts.nunito(),
       ),
-      style: const TextStyle(color: Colors.black),
+      style: (selectedSystem != null && _isArabic(selectedSystem!))
+          ? _getTextStyle(16, FontWeight.normal, Colors.black)
+          : GoogleFonts.nunito(),
       dropdownColor: Colors.white,
       value: selectedSystem,
       items: systemsList
@@ -216,7 +255,9 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 value: system,
                 child: Text(
                   system,
-                  style: const TextStyle(color: Colors.black),
+                  style: _isArabic(system)
+                      ? _getTextStyle(16, FontWeight.normal, Colors.black)
+                      : GoogleFonts.nunito(),
                 ),
               ))
           .toList(),
@@ -233,12 +274,15 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: 'Select Illness',
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        labelStyle: GoogleFonts.nunito(),
       ),
-      style: const TextStyle(color: Colors.black),
+      style: (selectedIllness != null && _isArabic(selectedIllness!))
+          ? _getTextStyle(16, FontWeight.normal, Colors.black)
+          : GoogleFonts.nunito(),
       dropdownColor: Colors.white,
       value: selectedIllness,
       items: filteredIllnesses
@@ -246,7 +290,9 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 value: illness.name,
                 child: Text(
                   illness.name,
-                  style: const TextStyle(color: Colors.black),
+                  style: _isArabic(illness.name)
+                      ? _getTextStyle(16, FontWeight.normal, Colors.black)
+                      : GoogleFonts.nunito(),
                 ),
               ))
           .toList(),
@@ -315,14 +361,20 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.nunito(
                   fontSize: 16,
+                  fontWeight: FontWeight.bold,
                   color: Colors.blue[800],
                 ),
               ),
               const SizedBox(height: 8),
-              Text(content!),
+              Text(
+                content,
+                textAlign: _isArabic(content) ? TextAlign.right : TextAlign.left,
+                style: _isArabic(content)
+                    ? _getTextStyle(14, FontWeight.normal, Colors.black87)
+                    : GoogleFonts.nunito(fontSize: 14),
+              ),
             ],
           ),
         ),
