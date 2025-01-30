@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class IllnessData {
   final String system;
@@ -24,19 +26,33 @@ class IllnessData {
     required this.imageUrls,
     required this.caseAvailability,
   });
+
+  factory IllnessData.fromJson(Map<String, dynamic> json) {
+    return IllnessData(
+      system: json['system'] ?? '',
+      name: json['name'] ?? '',
+      treatment1: json['treatment1'] ?? '',
+      treatment2: json['treatment2'] ?? '',
+      treatment3: json['treatment3'] ?? '',
+      treatment4: json['treatment4'] ?? '',
+      complementary: json['complementary'] ?? '',
+      cautions: json['cautions'] ?? '',
+      imageUrls: List<String>.from(json['imageUrls'] ?? []),
+      caseAvailability: json['caseAvailability'] ?? 0,
+    );
+  }
 }
 
 class GuessTheWordQuizScreen extends StatefulWidget {
-    const GuessTheWordQuizScreen({Key? key}) : super(key: key);
+  const GuessTheWordQuizScreen({Key? key}) : super(key: key);
 
-    /// If you need a static route to use in your routes.dart or similar:
   static Route route(RouteSettings settings) {
     return MaterialPageRoute(
       builder: (_) => const GuessTheWordQuizScreen(),
       settings: settings,
     );
   }
-  
+
   @override
   _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
@@ -48,26 +64,39 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   List<IllnessData> illnessesList = [];
   List<String> systemsList = [];
   List<IllnessData> filteredIllnesses = [];
+  bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Load mock data
-    illnessesList = [
-      IllnessData(
-        system: 'GIT',
-        name: 'Constipation',
-        treatment1: 'Treatment 1 for Egypt',
-        treatment2: 'Treatment 2 for Egypt',
-        treatment3: '',
-        treatment4: '',
-        complementary: 'Complementary for Egypt',
-        cautions: 'Cautions for Egypt',
-        imageUrls: ['https://example.com/image1.jpg'],
-        caseAvailability: 1,
-      ),
-    ];
-    systemsList = _getUniqueSystems();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      // Replace with your actual data URL
+      final response = await http.get(Uri.parse('https://egypt.moazpharmacy.com/ill.json'));
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        illnessesList = jsonData.map((item) => IllnessData.fromJson(item)).toList();
+        systemsList = _getUniqueSystems();
+        setState(() {
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load data: ${response.statusCode}';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error loading data: $e';
+        isLoading = false;
+      });
+    }
   }
 
   List<String> _getUniqueSystems() {
@@ -86,6 +115,18 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Scaffold(
+        body: Center(child: Text(errorMessage!)),
+      );
+    }
+
     final selectedIllnessData = illnessesList.firstWhere(
       (e) => e.name == selectedIllness,
       orElse: () => IllnessData(
@@ -95,7 +136,10 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pharmacist Treatment Guide')),
+      appBar: AppBar(
+        title: const Text('Pharmacist Treatment Guide'),
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -121,24 +165,37 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   }
 
   Widget _buildCountrySelector() {
-    return ToggleButtons(
-      isSelected: [selectedCountry == 'Egypt', selectedCountry == 'Saudi'],
-      onPressed: (index) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildCountryButton('Egypt'),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildCountryButton('Saudi'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCountryButton(String country) {
+    final isSelected = selectedCountry == country;
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? Colors.green : Colors.grey[200],
+        foregroundColor: isSelected ? Colors.white : Colors.black,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: () {
         setState(() {
-          selectedCountry = index == 0 ? 'Egypt' : 'Saudi';
+          selectedCountry = country;
           _filterIllnesses();
         });
       },
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('Egypt'),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text('Saudi'),
-        ),
-      ],
+      child: Text(country),
     );
   }
 
@@ -147,12 +204,20 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       decoration: InputDecoration(
         labelText: 'Select System',
         border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       ),
+      style: const TextStyle(color: Colors.black),
+      dropdownColor: Colors.white,
       value: selectedSystem,
       items: systemsList
           .map((system) => DropdownMenuItem(
                 value: system,
-                child: Text(system),
+                child: Text(
+                  system,
+                  style: const TextStyle(color: Colors.black),
+                ),
               ))
           .toList(),
       onChanged: (value) {
@@ -169,12 +234,20 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       decoration: InputDecoration(
         labelText: 'Select Illness',
         border: OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       ),
+      style: const TextStyle(color: Colors.black),
+      dropdownColor: Colors.white,
       value: selectedIllness,
       items: filteredIllnesses
           .map((illness) => DropdownMenuItem(
                 value: illness.name,
-                child: Text(illness.name),
+                child: Text(
+                  illness.name,
+                  style: const TextStyle(color: Colors.black),
+                ),
               ))
           .toList(),
       onChanged: (value) {
@@ -186,7 +259,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
   }
 
   Widget _buildImageGallery(List<String> imageUrls) {
-    if (imageUrls.isEmpty) return SizedBox();
+    if (imageUrls.isEmpty) return const SizedBox();
     return SizedBox(
       height: 150,
       child: ListView.builder(
@@ -201,6 +274,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 imageUrls[index],
                 width: 200,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
               ),
             ),
           );
@@ -211,7 +285,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
   Widget _buildTreatmentSection(IllnessData data) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildTreatmentCard('Treatment Solution 1', data.treatment1),
         _buildTreatmentCard('Treatment Solution 2', data.treatment2),
@@ -228,22 +302,29 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.blue[800],
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.blue[800],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(content),
-          ],
+              const SizedBox(height: 8),
+              Text(content!),
+            ],
+          ),
         ),
       ),
     );
