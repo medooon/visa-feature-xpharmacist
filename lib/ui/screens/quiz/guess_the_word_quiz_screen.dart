@@ -90,7 +90,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
 
   Future<void> _loadData() async {
     try {
-      final response = await http.get(Uri.parse('YOUR_DATA_URL_HERE'));
+      final response = await http.get(Uri.parse('https://egypt.moazpharmacy.com/ill.json'));
       if (response.statusCode == 200) {
         final String decodedBody = utf8.decode(response.bodyBytes);
         final List<dynamic> jsonData = json.decode(decodedBody);
@@ -362,7 +362,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
               Text(
                 title,
                 style: GoogleFonts.nunito(
-                  fontSize: 16,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue[800],
                 ),
@@ -373,7 +373,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                 textAlign: _isArabic(content) ? TextAlign.right : TextAlign.left,
                 style: _isArabic(content)
                     ? _getTextStyle(14, FontWeight.normal, Colors.black87)
-                    : GoogleFonts.nunito(fontSize: 14),
+                    : GoogleFonts.nunito(fontSize: 19),
               ),
             ],
           ),
