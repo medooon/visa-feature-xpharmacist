@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutterquiz/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:http/http.dart' as http;
@@ -420,17 +421,9 @@ Widget _buildMoreDataButton() {
     child: Text(
       'More Data',
       style: GoogleFonts.nunito(
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
     ),
   );
-}        'More Data',
-        style: GoogleFonts.nunito(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
 }
