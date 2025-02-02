@@ -337,88 +337,97 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     );
   }
 
-  Widget _buildTreatmentSection(IllnessData data) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildTreatmentCard('Treatment Solution 1', data.treatment1),
-        _buildTreatmentCard('Treatment Solution 2', data.treatment2),
-        _buildTreatmentCard('Treatment Solution 3', data.treatment3),
-        _buildTreatmentCard('Treatment Solution 4', data.treatment4),
-        _buildTreatmentCard('Complementary Treatment', data.complementary),
-        _buildTreatmentCard('Cautions & Advice', data.cautions),
-      ].whereType<Widget>().toList(),
-    );
-  }
+Widget _buildTreatmentSection(IllnessData data) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _buildTreatmentCard('Treatment Solution 1', data.treatment1),
+      _buildTreatmentCard('Treatment Solution 2', data.treatment2),
+      _buildTreatmentCard('Treatment Solution 3', data.treatment3),
+      _buildTreatmentCard('Treatment Solution 4', data.treatment4),
+      _buildTreatmentCard('Complementary Treatment', data.complementary),
+      _buildTreatmentCard('Cautions & Advice', data.cautions),
+    ].where((widget) => widget is Widget).toList(),
+  );
+}
 
-  Widget _buildTreatmentCard(String title, String? content) {
-    if (content == null || content.isEmpty) return null;
+Widget _buildTreatmentCard(String title, String? content) {
+  if (content == null || content.isEmpty) return const SizedBox.shrink();
 
-    final isArabicContent = _isArabic(content);
+  final isArabicContent = _isArabic(content);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+  return Card(
+    margin: const EdgeInsets.only(bottom: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+    ),
+    elevation: 2,
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: isArabicContent 
+            ? CrossAxisAlignment.end 
+            : CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.nunito(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue[800],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Directionality(
+            textDirection: isArabicContent 
+                ? TextDirection.rtl 
+                : TextDirection.ltr,
+            child: HtmlWidget(
+              content,
+              customStylesBuilder: (element) => {
+                'table': 'width: 100%; border-collapse: collapse;',
+                'td': 'padding: 8px; border: 1px solid #ddd;',
+                'th': 'padding: 8px; border: 1px solid #ddd; background: #f5f5f5;'
+              },
+              textStyle: TextStyle(
+                fontSize: 16,
+                fontFamily: isArabicContent
+                    ? GoogleFonts.lateef().fontFamily
+                    : GoogleFonts.nunito().fontFamily,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildMoreDataButton() {
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFE91E63),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: isArabicContent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[800],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Directionality(
-              textDirection: isArabicContent ? TextDirection.rtl : TextDirection.ltr,
-              child: HtmlWidget(
-                content,
-                customStylesBuilder: (element) {
-                  return {
-                    'table': 'width: 100%; border-collapse: collapse;',
-                    'td': 'padding: 8px; border: 1px solid #ddd;',
-                    'th': 'padding: 8px; border: 1px solid #ddd; background: #f5f5f5;'
-                  };
-                },
-                textStyle: TextStyle(
-                  fontSize: 16,
-                  fontFamily: isArabicContent
-                      ? GoogleFonts.lateef().fontFamily
-                      : GoogleFonts.nunito().fontFamily,
-                ),
-              ),
-            ),
-          ],
-        ),
+      minimumSize: const Size(double.infinity, 50),
+    ),
+    onPressed: () {
+      Navigator.of(context).pushNamed(Routes.funAndLearn);
+    },
+    child: Text(
+      'More Data',
+      style: GoogleFonts.nunito(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
       ),
-    );
-  }
-
-  Widget _buildMoreDataButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFE91E63), // Deep pink
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        minimumSize: const Size(double.infinity, 50),
-      ),
-      onPressed: () {
-        Navigator.of(context).pushNamed(Routes.funAndLearn);
-      },
-      child: Text(
-        'More Data',
+    ),
+  );
+}        'More Data',
         style: GoogleFonts.nunito(
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
