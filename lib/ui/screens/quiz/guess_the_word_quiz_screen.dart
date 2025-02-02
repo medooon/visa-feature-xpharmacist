@@ -413,12 +413,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         minimumSize: const Size(double.infinity, 50),
       ),
       onPressed: () {
-        Navigator.of(context).pushNamed(
-          Routes.category,
-          arguments: {
-            'funAndLearn': Routes.funAndLearn,
-          },
-        );
+        Navigator.of(context).pushNamed(Routes.funAndLearn);
       },
       child: Text(
         'More Data',
