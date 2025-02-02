@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Ensure this package is imported
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -160,26 +161,37 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
         ),
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildCountrySelector(),
-              const SizedBox(height: 20),
-              _buildSystemDropdown(),
-              const SizedBox(height: 20),
-              _buildIllnessDropdown(),
-              const SizedBox(height: 30),
-              if (selectedIllness != null) ...[
-                _buildImageGallery(selectedIllnessData.imageUrls),
-                const SizedBox(height: 20),
-                _buildTreatmentSection(selectedIllnessData),
-              ],
-            ],
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 80), // Space for button
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildCountrySelector(),
+                  const SizedBox(height: 20),
+                  _buildSystemDropdown(),
+                  const SizedBox(height: 20),
+                  _buildIllnessDropdown(),
+                  const SizedBox(height: 30),
+                  if (selectedIllness != null) ...[
+                    _buildImageGallery(selectedIllnessData.imageUrls),
+                    const SizedBox(height: 20),
+                    _buildTreatmentSection(selectedIllnessData),
+                  ],
+                ],
+              ),
+            ),
           ),
-        ),
+          Positioned(
+            bottom: 20,
+            left: 16,
+            right: 16,
+            child: _buildMoreDataButton(),
+          ),
+        ],
       ),
     );
   }
@@ -339,9 +351,11 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     );
   }
 
-  Widget? _buildTreatmentCard(String title, String? content) {
+  Widget _buildTreatmentCard(String title, String? content) {
     if (content == null || content.isEmpty) return null;
-    
+
+    final isArabicContent = _isArabic(content);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
@@ -350,32 +364,67 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.nunito(
+        child: Column(
+          crossAxisAlignment: isArabicContent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.nunito(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Directionality(
+              textDirection: isArabicContent ? TextDirection.rtl : TextDirection.ltr,
+              child: HtmlWidget(
+                content,
+                customStylesBuilder: (element) {
+                  return {
+                    'table': 'width: 100%; border-collapse: collapse;',
+                    'td': 'padding: 8px; border: 1px solid #ddd;',
+                    'th': 'padding: 8px; border: 1px solid #ddd; background: #f5f5f5;'
+                  };
+                },
+                textStyle: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
+                  fontFamily: isArabicContent
+                      ? GoogleFonts.lateef().fontFamily
+                      : GoogleFonts.nunito().fontFamily,
                 ),
               ),
-              const SizedBox(height: 8),
-              Container(
-                alignment: _isArabic(content) ? Alignment.centerRight : Alignment.centerLeft,
-                child: Text(
-                  content,
-                  textAlign: _isArabic(content) ? TextAlign.right : TextAlign.left,
-                  style: _isArabic(content)
-                      ? GoogleFonts.lateef(fontSize: 14, color: Colors.black)
-                      : GoogleFonts.nunito(fontSize: 14, color: Colors.black),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoreDataButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFE91E63), // Deep pink
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        minimumSize: const Size(double.infinity, 50),
+      ),
+      onPressed: () {
+        Navigator.of(context).pushNamed(
+          Routes.category,
+          arguments: {
+            'funAndLearn': Routes.funAndLearn,
+          },
+        );
+      },
+      child: Text(
+        'More Data',
+        style: GoogleFonts.nunito(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
