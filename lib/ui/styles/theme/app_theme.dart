@@ -91,9 +91,9 @@ final _dialogThemeData = DialogTheme(
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(20)),
   ),
-  titleTextStyle: GoogleFonts.nunito(
+  titleTextStyle: GoogleFonts.lateef(
     textStyle: const TextStyle(
-      fontSize: 18,
+      fontSize: 24,
       fontWeight: FontWeights.regular,
       color: klPrimaryTextColor,
     ),
@@ -104,7 +104,7 @@ final _dialogThemeData = DialogTheme(
 );
 
 final _cupertinoOverrideTheme = NoDefaultCupertinoThemeData(
-  textTheme: CupertinoTextThemeData(textStyle: GoogleFonts.nunito()),
+  textTheme: CupertinoTextThemeData(textStyle: GoogleFonts.lateef()),
 );
 
 final _tabBarTheme = TabBarTheme(
@@ -112,10 +112,10 @@ final _tabBarTheme = TabBarTheme(
   overlayColor: const WidgetStatePropertyAll(Colors.transparent),
   dividerHeight: 0,
   labelColor: klBackgroundColor,
-  labelStyle: GoogleFonts.nunito(
+  labelStyle: GoogleFonts.lateef(
     textStyle: const TextStyle(
       fontWeight: FontWeights.regular,
-      fontSize: 14,
+      fontSize: 20,
     ),
   ),
   unselectedLabelColor: Colors.black45,
