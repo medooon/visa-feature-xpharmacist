@@ -416,7 +416,12 @@ Widget _buildMoreDataButton() {
       minimumSize: const Size(double.infinity, 50),
     ),
     onPressed: () {
-      Navigator.of(context).pushNamed(Routes.funAndLearn);
+      Navigator.of(context).pushNamed(
+          Routes.category,
+          arguments: {
+            'quizType': QuizTypes.funAndLearn,
+          },
+        );
     },
     child: Text(
       'More Data',
