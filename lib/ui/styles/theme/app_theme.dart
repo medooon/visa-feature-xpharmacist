@@ -10,29 +10,15 @@ final appThemeData = {
   AppTheme.light: ThemeData(
     brightness: Brightness.light,
     canvasColor: klCanvasColor,
-    fontFamily: GoogleFonts.lateef().fontFamily, // Changed to Lateef
+    fontFamily: GoogleFonts.lateextext().fontFamily, // Changed to Lateef
     primaryColor: klPrimaryColor,
-    primaryTextTheme: GoogleFonts.lateefTextTheme().copyWith(
-      // Adjusted sizes
-      displayLarge: const TextStyle(fontSize: 24),
-      displayMedium: const TextStyle(fontSize: 22),
-      bodyLarge: const TextStyle(fontSize: 20),
-      bodyMedium: const TextStyle(fontSize: 18),
-      titleMedium: const TextStyle(fontSize: 20),
-      labelLarge: const TextStyle(fontSize: 18),
-    ),
+    primaryTextTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
+    cupertinoOverrideTheme: _cupertinoOverrideTheme,
     scaffoldBackgroundColor: klPageBackgroundColor,
     dialogTheme: _dialogThemeData,
-    shadowColor: klPrimaryColor.withOpacity(0.25),
+    shadowColor: klPrimaryColor.withOpacity(0.25), // Fixed .withValues->.withOpacity
     dividerTheme: _dividerThemeData,
-    textTheme: GoogleFonts.lateefTextTheme().copyWith(
-      // Adjusted sizes
-      bodyLarge: const TextStyle(fontSize: 20),
-      bodyMedium: const TextStyle(fontSize: 18),
-      titleLarge: const TextStyle(fontSize: 22),
-      titleMedium: const TextStyle(fontSize: 20),
-      labelLarge: const TextStyle(fontSize: 18),
-    ),
+    textTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
     textButtonTheme: _textButtonTheme,
     tabBarTheme: _tabBarTheme,
     highlightColor: Colors.transparent,
@@ -47,26 +33,11 @@ final appThemeData = {
     ),
   ),
   AppTheme.dark: ThemeData(
+    primaryTextTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
+    textTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
+    fontFamily: GoogleFonts.lateextext().fontFamily, // Changed to Lateef
+    shadowColor: kdPrimaryColor.withOpacity(0.25), // Fixed .withValues->.withOpacity
     brightness: Brightness.dark,
-    fontFamily: GoogleFonts.lateef().fontFamily, // Changed to Lateef
-    primaryTextTheme: GoogleFonts.lateefTextTheme().copyWith(
-      // Adjusted sizes
-      displayLarge: const TextStyle(fontSize: 24),
-      displayMedium: const TextStyle(fontSize: 22),
-      bodyLarge: const TextStyle(fontSize: 20),
-      bodyMedium: const TextStyle(fontSize: 18),
-      titleMedium: const TextStyle(fontSize: 20),
-      labelLarge: const TextStyle(fontSize: 18),
-    ),
-    textTheme: GoogleFonts.lateefTextTheme().copyWith(
-      // Adjusted sizes
-      bodyLarge: const TextStyle(fontSize: 20),
-      bodyMedium: const TextStyle(fontSize: 18),
-      titleLarge: const TextStyle(fontSize: 22),
-      titleMedium: const TextStyle(fontSize: 20),
-      labelLarge: const TextStyle(fontSize: 18),
-    ),
-    shadowColor: kdPrimaryColor.withOpacity(0.25),
     primaryColor: kdPrimaryColor,
     scaffoldBackgroundColor: kdPageBackgroundColor,
     dialogTheme: _dialogThemeData.copyWith(
@@ -102,27 +73,27 @@ final appThemeData = {
   ),
 };
 
-// Updated Cupertino theme with Lateef
-final _cupertinoOverrideTheme = NoDefaultCupertinoThemeData(
-  textTheme: CupertinoTextThemeData(
-    textStyle: GoogleFonts.lateef(
-      textStyle: const TextStyle(
-        fontSize: 24, // Increased from 16
-        fontWeight: FontWeights.regular,
-      ),
+final _textButtonTheme = TextButtonThemeData(
+  style: TextButton.styleFrom(
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
     ),
   ),
 );
 
-// Updated Dialog theme with Lateef
+const _dividerThemeData = DividerThemeData(
+  color: Colors.black12,
+  thickness: .5,
+);
+
 final _dialogThemeData = DialogTheme(
   alignment: Alignment.center,
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(20)),
   ),
-  titleTextStyle: GoogleFonts.lateef(
+  titleTextStyle: GoogleFonts.lateef( // Changed to Lateef
     textStyle: const TextStyle(
-      fontSize: 24, // Increased from 18
+      fontSize: 26, // 18+8=26
       fontWeight: FontWeights.regular,
       color: klPrimaryTextColor,
     ),
@@ -132,16 +103,26 @@ final _dialogThemeData = DialogTheme(
   backgroundColor: klPageBackgroundColor,
 );
 
-// Updated TabBar theme with Lateef
+final _cupertinoOverrideTheme = NoDefaultCupertinoThemeData(
+  textTheme: CupertinoTextThemeData(
+    textStyle: GoogleFonts.lateef( // Changed to Lateef
+      textStyle: const TextStyle(
+        fontSize: 24, // Original base size (14) +8=22
+        fontWeight: FontWeights.regular,
+      ),
+    ),
+  ),
+);
+
 final _tabBarTheme = TabBarTheme(
   tabAlignment: TabAlignment.center,
   overlayColor: const WidgetStatePropertyAll(Colors.transparent),
   dividerHeight: 0,
   labelColor: klBackgroundColor,
-  labelStyle: GoogleFonts.lateef(
+  labelStyle: GoogleFonts.lateef( // Changed to Lateef
     textStyle: const TextStyle(
       fontWeight: FontWeights.regular,
-      fontSize: 22, // Increased from 14
+      fontSize: 24, // 14+8=22
     ),
   ),
   unselectedLabelColor: Colors.black45,
