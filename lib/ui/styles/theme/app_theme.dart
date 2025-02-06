@@ -10,7 +10,7 @@ final appThemeData = {
   AppTheme.light: ThemeData(
     brightness: Brightness.light,
     canvasColor: klCanvasColor,
-    fontFamily: GoogleFonts.lateextext().fontFamily, // Changed to Lateef
+    fontFamily: GoogleFonts.lateeftext().fontFamily, // Changed to Lateef
     primaryColor: klPrimaryColor,
     primaryTextTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
     cupertinoOverrideTheme: _cupertinoOverrideTheme,
@@ -35,7 +35,7 @@ final appThemeData = {
   AppTheme.dark: ThemeData(
     primaryTextTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
     textTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
-    fontFamily: GoogleFonts.lateextext().fontFamily, // Changed to Lateef
+    fontFamily: GoogleFonts.lateeftext().fontFamily, // Changed to Lateef
     shadowColor: kdPrimaryColor.withOpacity(0.25), // Fixed .withValues->.withOpacity
     brightness: Brightness.dark,
     primaryColor: kdPrimaryColor,
