@@ -1,49 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutterquiz/app/routes.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:flutterquiz/features/quiz/models/quiz_type.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class IllnessData {
-  final String system;
-  final String name;
-  final String treatment1;
-  final String treatment2;
-  final String treatment3;
-  final String treatment4;
-  final String complementary;
-  final String cautions;
-  final List<String> imageUrls;
-  final int caseAvailability;
-  IllnessData({
-    required this.system,
-    required this.name,
-    required this.treatment1,
-    required this.treatment2,
-    required this.treatment3,
-    required this.treatment4,
-    required this.complementary,
-    required this.cautions,
-    required this.imageUrls,
-    required this.caseAvailability,
-  });
-  factory IllnessData.fromJson(Map<String, dynamic> json) {
-    return IllnessData(
-      system: json['system'] ?? '',
-      name: json['name'] ?? '',
-      treatment1: json['treatment1'] ?? '',
-      treatment2: json['treatment2'] ?? '',
-      treatment3: json['treatment3'] ?? '',
-      treatment4: json['treatment4'] ?? '',
-      complementary: json['complementary'] ?? '',
-      cautions: json['cautions'] ?? '',
-      imageUrls: List<String>.from(json['imageUrls'] ?? []),
-      caseAvailability: json['caseAvailability'] ?? 0,
-    );
-  }
-}
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
   static Route route(RouteSettings settings) {
@@ -55,358 +13,189 @@ class GuessTheWordQuizScreen extends StatefulWidget {
   @override
   _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
 }
+
 class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
-  String? selectedCountry = 'Egypt';
-  String? selectedSystem;
-  String? selectedIllness;
-  List<IllnessData> illnessesList = [];
-  List<String> systemsList = [];
-  List<IllnessData> filteredIllnesses = [];
-  bool isLoading = true;
-  String? errorMessage;
-  bool _isArabic(String text) {
-    return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
-  }
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-  Future<void> _loadData() async {
+  final TextEditingController _drugController = TextEditingController();
+  List<String> drugNames = [];
+  List<String> interactions = [];
+  bool isLoading = false;
+
+  Future<String?> getRxCUI(String drugName) async {
+    final trimmedName = drugName.trim();
+    if (trimmedName.isEmpty) return null;
+    
     try {
-      final response = await http.get(Uri.parse('https://egypt.moazpharmacy.com/ill.json'));
+      final response = await http.get(
+        Uri.parse('https://rxnav.nlm.nih.gov/REST/rxcui.json?name=$trimmedName'),
+      );
+
       if (response.statusCode == 200) {
-        final String decodedBody = utf8.decode(response.bodyBytes);
-        final List<dynamic> jsonData = json.decode(decodedBody);
-        illnessesList = jsonData.map((item) => IllnessData.fromJson(item)).toList();
-        systemsList = _getUniqueSystems();
-        setState(() => isLoading = false);
+        final data = jsonDecode(response.body);
+        final idGroup = data['idGroup'];
+        if (idGroup != null && 
+            idGroup['rxnormId'] != null && 
+            (idGroup['rxnormId'] as List).isNotEmpty) {
+          return idGroup['rxnormId'][0];
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching RxCUI: $e');
+      return null;
+    }
+  }
+
+  Future<void> checkInteractions() async {
+    setState(() {
+      isLoading = true;
+      interactions.clear();
+    });
+
+    try {
+      List<String> rxCuis = [];
+      List<String> invalidDrugs = [];
+
+      // Get RxCUIs with error tracking
+      for (String drug in drugNames) {
+        final rxcui = await getRxCUI(drug);
+        if (rxcui != null) {
+          rxCuis.add(rxcui);
+        } else {
+          invalidDrugs.add(drug);
+        }
+      }
+
+      // Show invalid drug warnings
+      if (invalidDrugs.isNotEmpty) {
+        interactions.add('Warning: Could not find IDs for: ${invalidDrugs.join(', ')}');
+      }
+
+      // Validate minimum drug count
+      if (rxCuis.length < 2) {
+        interactions.add('At least 2 valid drugs required for interaction check');
+        return;
+      }
+
+      // Check API limits
+      if (rxCuis.length > 20) {
+        interactions.add('Maximum 20 drugs allowed for interaction check');
+        return;
+      }
+
+      // Fetch interactions
+      final response = await http.get(
+        Uri.parse('https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxCuis.join("+")}'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final groups = data['fullInteractionTypeGroup'] as List?;
+        
+        if (groups != null && groups.isNotEmpty) {
+          for (var group in groups.cast<Map<String, dynamic>>()) {
+            final types = group['fullInteractionType'] as List?;
+            if (types != null) {
+              for (var type in types.cast<Map<String, dynamic>>()) {
+                final pairs = type['interactionPair'] as List?;
+                if (pairs != null) {
+                  for (var pair in pairs.cast<Map<String, dynamic>>()) {
+                    final desc = pair['description'] as String?;
+                    if (desc != null && !interactions.contains(desc)) {
+                      interactions.add(desc);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        if (interactions.isEmpty) {
+          interactions.add('No significant interactions found');
+        }
       } else {
-        setState(() {
-          errorMessage = 'Failed to load data: ${response.statusCode}';
-          isLoading = false;
-        });
+        interactions.add('Error fetching data (${response.statusCode})');
       }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Error loading data: $e';
-        isLoading = false;
-      });
+      interactions.add('Network error: ${e.toString()}');
+    } finally {
+      setState(() => isLoading = false);
     }
   }
-  List<String> _getUniqueSystems() {
-    return illnessesList.map((e) => e.system).toSet().toList();
-  }
-  void _filterIllnesses() {
-    filteredIllnesses = illnessesList.where((illness) {
-      final countryMatch = selectedCountry == 'Egypt' 
-          ? illness.caseAvailability == 1 || illness.caseAvailability == 3
-          : illness.caseAvailability == 2 || illness.caseAvailability == 3;
-      return illness.system == selectedSystem && countryMatch;
-    }).toList();
-    selectedIllness = null;
-  }
+
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.blue[800],
-          ),
-        ),
-      );
-    }
-    if (errorMessage != null) {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            errorMessage!,
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              color: Colors.red,
-            ),
-          ),
-        ),
-      );
-    }
-    final selectedIllnessData = illnessesList.firstWhere(
-      (e) => e.name == selectedIllness,
-      orElse: () => IllnessData(
-        system: '', name: '', treatment1: '', treatment2: '', 
-        treatment3: '', treatment4: '', complementary: '', cautions: '', 
-        imageUrls: [], caseAvailability: 0),
-    );
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Pharmacist Treatment Guide',
-          style: GoogleFonts.nunito(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevation: 0,
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 80), // Space for button
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildCountrySelector(),
-                  const SizedBox(height: 20),
-                  _buildSystemDropdown(),
-                  const SizedBox(height: 20),
-                  _buildIllnessDropdown(),
-                  const SizedBox(height: 30),
-                  if (selectedIllness != null) ...[
-                    _buildImageGallery(selectedIllnessData.imageUrls),
-                    const SizedBox(height: 20),
-                    _buildTreatmentSection(selectedIllnessData),
-                  ],
-                ],
-              ),
+      appBar: AppBar(title: Text("Drug Interaction Checker")),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _drugController,
+                    decoration: InputDecoration(
+                      labelText: "Enter drug name",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    final name = _drugController.text.trim();
+                    if (name.isNotEmpty) {
+                      if (!drugNames.contains(name)) {
+                        setState(() {
+                          drugNames.add(name);
+                          _drugController.clear();
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('$name already added')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text("Add"),
+                ),
+              ],
             ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 16,
-            right: 16,
-            child: _buildMoreDataButton(),
-          ),
-        ],
-      ),
-    );
-  }
-  Widget _buildCountrySelector() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildCountryButton('Egypt'),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildCountryButton('Saudi'),
-        ),
-      ],
-    );
-  }
-  Widget _buildCountryButton(String country) {
-    final isSelected = selectedCountry == country;
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.green : Colors.grey[200],
-        foregroundColor: isSelected ? Colors.white : Colors.black,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      onPressed: () {
-        setState(() {
-          selectedCountry = country;
-          _filterIllnesses();
-        });
-      },
-      child: Text(
-        country,
-        style: GoogleFonts.nunito(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-  Widget _buildSystemDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Select System',
-        border: const OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        labelStyle: GoogleFonts.nunito(color: Colors.black),
-      ),
-      style: _isArabic(selectedSystem ?? '')
-          ? GoogleFonts.lateef(fontSize: 16, color: Colors.black)
-          : GoogleFonts.nunito(fontSize: 16, color: Colors.black),
-      dropdownColor: Colors.white,
-      value: selectedSystem,
-      items: systemsList.map((system) {
-        return DropdownMenuItem(
-          value: system,
-          child: Container(
-            alignment: _isArabic(system) ? Alignment.centerRight : Alignment.centerLeft,
-            child: Text(
-              system,
-              style: _isArabic(system)
-                  ? GoogleFonts.lateef(fontSize: 16, color: Colors.black)
-                  : GoogleFonts.nunito(fontSize: 16, color: Colors.black),
+            SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: drugNames.map((drug) => Chip(
+                label: Text(drug),
+                onDeleted: () => setState(() => drugNames.remove(drug)),
+              )).toList(),
             ),
-          ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          selectedSystem = value;
-          _filterIllnesses();
-        });
-      },
-    );
-  }
-  Widget _buildIllnessDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Select Illness',
-        border: const OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        labelStyle: GoogleFonts.nunito(color: Colors.black),
-      ),
-      style: _isArabic(selectedIllness ?? '')
-          ? GoogleFonts.lateef(fontSize: 16, color: Colors.black)
-          : GoogleFonts.nunito(fontSize: 16, color: Colors.black),
-      dropdownColor: Colors.white,
-      value: selectedIllness,
-      items: filteredIllnesses.map((illness) {
-        return DropdownMenuItem(
-          value: illness.name,
-          child: Container(
-            alignment: _isArabic(illness.name) ? Alignment.centerRight : Alignment.centerLeft,
-            child: Text(
-              illness.name,
-              style: _isArabic(illness.name)
-                  ? GoogleFonts.lateef(fontSize: 16, color: Colors.black)
-                  : GoogleFonts.nunito(fontSize: 16, color: Colors.black),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: drugNames.length >= 2 && !isLoading 
+                  ? checkInteractions 
+                  : null,
+              child: Text("Check Interactions"),
             ),
-          ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          selectedIllness = value;
-        });
-      },
-    );
-  }
-  Widget _buildImageGallery(List<String> imageUrls) {
-    if (imageUrls.isEmpty) return const SizedBox();
-    return SizedBox(
-      height: 150,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: imageUrls.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                imageUrls[index],
-                width: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
-              ),
+            SizedBox(height: 20),
+            Expanded(
+              child: isLoading 
+                  ? Center(child: CircularProgressIndicator())
+                  : interactions.isEmpty
+                      ? Center(child: Text("No results to display"))
+                      : ListView.separated(
+                          itemCount: interactions.length,
+                          separatorBuilder: (_, __) => Divider(height: 1),
+                          itemBuilder: (_, i) => ListTile(
+                            leading: Icon(Icons.warning, color: Colors.orange),
+                            title: Text(interactions[i]),
+                          ),
+                        ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
-Widget _buildTreatmentSection(IllnessData data) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      _buildTreatmentCard('Treatment Solution 1', data.treatment1),
-      _buildTreatmentCard('Treatment Solution 2', data.treatment2),
-      _buildTreatmentCard('Treatment Solution 3', data.treatment3),
-      _buildTreatmentCard('Treatment Solution 4', data.treatment4),
-      _buildTreatmentCard('Complementary Treatment', data.complementary),
-      _buildTreatmentCard('Cautions & Advice', data.cautions),
-    ].where((widget) => widget is Widget).toList(),
-  );
 }
-Widget _buildTreatmentCard(String title, String? content) {
-  if (content == null || content.isEmpty) return const SizedBox.shrink();
-  final isArabicContent = _isArabic(content);
-  return Card(
-    margin: const EdgeInsets.only(bottom: 16),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-    elevation: 2,
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: isArabicContent 
-            ? CrossAxisAlignment.end 
-            : CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Directionality(
-            textDirection: isArabicContent 
-                ? TextDirection.rtl 
-                : TextDirection.ltr,
-            child: HtmlWidget(
-              content,
-              customStylesBuilder: (element) => {
-                'table': 'width: 100%; border-collapse: collapse;',
-                'td': 'padding: 8px; border: 1px solid #ddd;',
-                'th': 'padding: 8px; border: 1px solid #ddd; background: #f5f5f5;'
-              },
-              textStyle: TextStyle(
-                fontSize: 16,
-                fontFamily: isArabicContent
-                    ? GoogleFonts.lateef().fontFamily
-                    : GoogleFonts.nunito().fontFamily,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildMoreDataButton() {
-  return ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFFE91E63),
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      minimumSize: const Size(double.infinity, 50),
-    ),
-    onPressed: () {
-      Navigator.of(context).pushNamed(
-          Routes.category,
-          arguments: {
-            'quizType': QuizTypes.funAndLearn,
-          },
-        );
-    },
-    child: Text(
-      'More Data',
-      style: GoogleFonts.nunito(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  );
-}
-} 
