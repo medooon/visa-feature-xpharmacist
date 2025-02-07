@@ -86,8 +86,8 @@ class QuizGridCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.clip,
                       style: TextStyle(
-                        fontWeight: FontWeights.bold,
-                        fontSize: 18,
+                        fontWeight: FontWeights.medium,
+                        fontSize: 22,
                         color: Colors.white,
                       ),
                     ),
@@ -99,7 +99,7 @@ class QuizGridCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeights.regular,
                           color: Colors.black,
                         ),
