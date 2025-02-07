@@ -15,186 +15,171 @@ class GuessTheWordQuizScreen extends StatefulWidget {
 }
 
 class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
-  final TextEditingController _drugController = TextEditingController();
-  List<String> drugNames = [];
-  List<String> interactions = [];
-  bool isLoading = false;
+  final TextEditingController _controller = TextEditingController();
+  final List<ChatMessage> _messages = [];
+  final String _apiKey = 'sk-6a9ba7e065a94c58bf6ebf4ad859c7a9';
+  bool _isLoading = false;
 
-  Future<String?> getRxCUI(String drugName) async {
-    final trimmedName = drugName.trim();
-    if (trimmedName.isEmpty) return null;
-    
-    try {
-      final response = await http.get(
-        Uri.parse('https://rxnav.nlm.nih.gov/REST/rxcui.json?name=$trimmedName'),
-      );
+  void _sendMessage() async {
+    if (_controller.text.isEmpty) return;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final idGroup = data['idGroup'];
-        if (idGroup != null && 
-            idGroup['rxnormId'] != null && 
-            (idGroup['rxnormId'] as List).isNotEmpty) {
-          return idGroup['rxnormId'][0];
-        }
-      }
-      return null;
-    } catch (e) {
-      print('Error fetching RxCUI: $e');
-      return null;
-    }
-  }
+    final userMessage = _controller.text;
+    _controller.clear();
 
-  Future<void> checkInteractions() async {
     setState(() {
-      isLoading = true;
-      interactions.clear();
+      _messages.add(ChatMessage(
+        text: userMessage,
+        isUser: true,
+      ));
+      _isLoading = true;
     });
 
     try {
-      List<String> rxCuis = [];
-      List<String> invalidDrugs = [];
-
-      // Get RxCUIs with error tracking
-      for (String drug in drugNames) {
-        final rxcui = await getRxCUI(drug);
-        if (rxcui != null) {
-          rxCuis.add(rxcui);
-        } else {
-          invalidDrugs.add(drug);
-        }
-      }
-
-      // Show invalid drug warnings
-      if (invalidDrugs.isNotEmpty) {
-        interactions.add('Warning: Could not find IDs for: ${invalidDrugs.join(', ')}');
-      }
-
-      // Validate minimum drug count
-      if (rxCuis.length < 2) {
-        interactions.add('At least 2 valid drugs required for interaction check');
-        return;
-      }
-
-      // Check API limits
-      if (rxCuis.length > 20) {
-        interactions.add('Maximum 20 drugs allowed for interaction check');
-        return;
-      }
-
-      // Fetch interactions
-      final response = await http.get(
-        Uri.parse('https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxCuis.join("+")}'),
+      final response = await http.post(
+        Uri.parse('https://api.deepseek.com/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_apiKey',
+        },
+        body: jsonEncode({
+          'model': 'deepseek-chat',
+          'messages': [
+            {
+              'role': 'system',
+              'content': 'You are a medical expert assistant for pharmacists. '
+                  'Provide accurate, evidence-based information about medications, '
+                  'drug interactions, dosage recommendations, and patient counseling. '
+                  'Include references to clinical guidelines when appropriate.'
+            },
+            {'role': 'user', 'content': userMessage}
+          ],
+          'temperature': 0.3,
+        }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final groups = data['fullInteractionTypeGroup'] as List?;
+        final botResponse = data['choices'][0]['message']['content'];
         
-        if (groups != null && groups.isNotEmpty) {
-          for (var group in groups.cast<Map<String, dynamic>>()) {
-            final types = group['fullInteractionType'] as List?;
-            if (types != null) {
-              for (var type in types.cast<Map<String, dynamic>>()) {
-                final pairs = type['interactionPair'] as List?;
-                if (pairs != null) {
-                  for (var pair in pairs.cast<Map<String, dynamic>>()) {
-                    final desc = pair['description'] as String?;
-                    if (desc != null && !interactions.contains(desc)) {
-                      interactions.add(desc);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        
-        if (interactions.isEmpty) {
-          interactions.add('No significant interactions found');
-        }
+        setState(() {
+          _messages.add(ChatMessage(
+            text: botResponse,
+            isUser: false,
+          ));
+        });
       } else {
-        interactions.add('Error fetching data (${response.statusCode})');
+        _showError('Failed to get response: ${response.statusCode}');
       }
     } catch (e) {
-      interactions.add('Network error: ${e.toString()}');
+      _showError('Error: $e');
     } finally {
-      setState(() => isLoading = false);
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Drug Interaction Checker")),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _drugController,
-                    decoration: InputDecoration(
-                      labelText: "Enter drug name",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+      appBar: AppBar(
+        title: const Text('Pharmacy Medical Assistant'),
+        centerTitle: true,
+        backgroundColor: Colors.blue[800],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) => _messages[index],
+            ),
+          ),
+          if (_isLoading) const LinearProgressIndicator(),
+          _buildInputArea(),
+          _buildDisclaimer(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputArea() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                hintText: 'Ask about medications, interactions, dosages...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    final name = _drugController.text.trim();
-                    if (name.isNotEmpty) {
-                      if (!drugNames.contains(name)) {
-                        setState(() {
-                          drugNames.add(name);
-                          _drugController.clear();
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('$name already added')),
-                        );
-                      }
-                    }
-                  },
-                  child: Text("Add"),
-                ),
-              ],
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              onSubmitted: (_) => _sendMessage(),
             ),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              children: drugNames.map((drug) => Chip(
-                label: Text(drug),
-                onDeleted: () => setState(() => drugNames.remove(drug)),
-              )).toList(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: _sendMessage,
+            color: Colors.blue[800],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDisclaimer() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        'Note: This information is for professional reference only. '
+        'Always verify with clinical guidelines and use professional judgment.',
+        style: TextStyle(color: Colors.grey, fontSize: 12),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class ChatMessage extends StatelessWidget {
+  final String text;
+  final bool isUser;
+
+  const ChatMessage({super.key, required this.text, required this.isUser});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment:
+            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.8,
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: drugNames.length >= 2 && !isLoading 
-                  ? checkInteractions 
-                  : null,
-              child: Text("Check Interactions"),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isUser ? Colors.blue[100] : Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
             ),
-            SizedBox(height: 20),
-            Expanded(
-              child: isLoading 
-                  ? Center(child: CircularProgressIndicator())
-                  : interactions.isEmpty
-                      ? Center(child: Text("No results to display"))
-                      : ListView.separated(
-                          itemCount: interactions.length,
-                          separatorBuilder: (_, __) => Divider(height: 1),
-                          itemBuilder: (_, i) => ListTile(
-                            leading: Icon(Icons.warning, color: Colors.orange),
-                            title: Text(interactions[i]),
-                          ),
-                        ),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: isUser ? Colors.blue[900] : Colors.black,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
