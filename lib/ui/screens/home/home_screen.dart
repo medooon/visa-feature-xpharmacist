@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // check build() method
   late var _boldTextStyle = TextStyle(
     fontWeight: FontWeights.bold,
-    fontSize: 22,
+    fontSize: 18,
     color: Theme.of(context).colorScheme.onTertiary,
   );
 
@@ -661,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       Text(
                         context.tr(letsPlay)!,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 13,
                           color: Theme.of(context)
                               .colorScheme
                               .onTertiary
@@ -753,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: Text(
                   context.tr(viewAllKey) ?? viewAllKey,
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context)
                         .colorScheme
@@ -1001,14 +1001,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
                 title: Text(
                   category.categoryName!,
-                  style: _boldTextStyle.copyWith(fontSize: 22),
+                  style: _boldTextStyle.copyWith(fontSize: 16),
                 ),
                 subtitle: Text(
                   category.noOf == '0'
                       ? "${context.tr("questionLbl")}: ${category.noOfQues!}"
                       : "${context.tr('subCategoriesLbl')}: ${category.noOf}",
                   style: TextStyle(
-                    fontSize: 19,
+                    fontSize: 14,
                     color: Theme.of(context)
                         .colorScheme
                         .onTertiary
@@ -1209,7 +1209,7 @@ Widget _buildZones() {
                           maxLines: 2,
                           style: TextStyle(
                             fontWeight: FontWeights.bold,
-                            fontSize: 21,
+                            fontSize: 16,
                             color: Theme.of(context).colorScheme.onTertiary,
                           ),
                         ),
@@ -1221,7 +1221,7 @@ Widget _buildZones() {
                         "${context.tr("dailyAdsDesc")!}",
                         style: TextStyle(
                           fontWeight: FontWeights.regular,
-                          fontSize: 19,
+                          fontSize: 14,
                           color: Theme.of(context)
                               .colorScheme
                               .onTertiary
@@ -1270,7 +1270,7 @@ Widget _buildZones() {
                 child: Text(
                   context.tr(viewAllKey) ?? viewAllKey,
                   style: TextStyle(
-                    fontSize: 19,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context)
                         .colorScheme
@@ -1308,7 +1308,7 @@ Widget _buildZones() {
                     )!,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 21,
+                      fontSize: 16,
                       fontWeight: FontWeights.regular,
                       color: Theme.of(context).primaryColor,
                     ),
@@ -1321,7 +1321,7 @@ Widget _buildZones() {
                 final colorScheme = Theme.of(context).colorScheme;
                 final textStyle = GoogleFonts.nunito(
                   textStyle: TextStyle(
-                    fontSize: 19,
+                    fontSize: 14,
                     fontWeight: FontWeights.regular,
                     color: colorScheme.onTertiary.withValues(alpha: 0.6),
                   ),
@@ -1344,7 +1344,7 @@ Widget _buildZones() {
                         convertErrorCodeToLanguageKey(live.errorMessage),
                       )!,
                       style: _boldTextStyle.copyWith(
-                        fontSize: 21,
+                        fontSize: 16,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
@@ -1445,7 +1445,7 @@ Widget _buildZones() {
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                     style: _boldTextStyle.copyWith(
-                                      fontSize: 21,
+                                      fontSize: 16,
                                     ),
                                   ),
                                   Text(
@@ -1548,7 +1548,7 @@ Widget _buildZones() {
                                   maxLines: 1,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 21,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context).primaryColor,
                                   ),
@@ -1680,7 +1680,7 @@ Widget _buildZones() {
     /// need to add this here, cause textStyle doesn't update automatically when changing theme.
     _boldTextStyle = TextStyle(
       fontWeight: FontWeight.bold,
-      fontSize: 22,
+      fontSize: 18,
       color: Theme.of(context).colorScheme.onTertiary,
     );
 
