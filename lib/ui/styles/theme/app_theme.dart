@@ -10,15 +10,15 @@ final appThemeData = {
   AppTheme.light: ThemeData(
     brightness: Brightness.light,
     canvasColor: klCanvasColor,
-    fontFamily: GoogleFonts.lateef().fontFamily, // Changed to Lateef
+    fontFamily: GoogleFonts.nunito().fontFamily,
     primaryColor: klPrimaryColor,
-    primaryTextTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
+    primaryTextTheme: GoogleFonts.nunitoTextTheme(),
     cupertinoOverrideTheme: _cupertinoOverrideTheme,
     scaffoldBackgroundColor: klPageBackgroundColor,
     dialogTheme: _dialogThemeData,
-    shadowColor: klPrimaryColor.withOpacity(0.25), // Fixed .withValues->.withOpacity
+    shadowColor: klPrimaryColor.withValues(alpha: 0.25),
     dividerTheme: _dividerThemeData,
-    textTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
+    textTheme: GoogleFonts.nunitoTextTheme(),
     textButtonTheme: _textButtonTheme,
     tabBarTheme: _tabBarTheme,
     highlightColor: Colors.transparent,
@@ -33,10 +33,10 @@ final appThemeData = {
     ),
   ),
   AppTheme.dark: ThemeData(
-    primaryTextTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
-    textTheme: GoogleFonts.lateefTextTheme(), // Changed to Lateef
-    fontFamily: GoogleFonts.lateef().fontFamily, // Changed to Lateef
-    shadowColor: kdPrimaryColor.withOpacity(0.25), // Fixed .withValues->.withOpacity
+    primaryTextTheme: GoogleFonts.nunitoTextTheme(),
+    textTheme: GoogleFonts.nunitoTextTheme(),
+    fontFamily: GoogleFonts.nunito().fontFamily,
+    shadowColor: kdPrimaryColor.withValues(alpha: 0.25),
     brightness: Brightness.dark,
     primaryColor: kdPrimaryColor,
     scaffoldBackgroundColor: kdPageBackgroundColor,
@@ -91,9 +91,9 @@ final _dialogThemeData = DialogTheme(
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(20)),
   ),
-  titleTextStyle: GoogleFonts.lateef( // Changed to Lateef
+  titleTextStyle: GoogleFonts.nunito(
     textStyle: const TextStyle(
-      fontSize: 26, // 18+8=26
+      fontSize: 18,
       fontWeight: FontWeights.regular,
       color: klPrimaryTextColor,
     ),
@@ -104,14 +104,7 @@ final _dialogThemeData = DialogTheme(
 );
 
 final _cupertinoOverrideTheme = NoDefaultCupertinoThemeData(
-  textTheme: CupertinoTextThemeData(
-    textStyle: GoogleFonts.lateef( // Changed to Lateef
-      textStyle: const TextStyle(
-        fontSize: 24, // Original base size (14) +8=22
-        fontWeight: FontWeights.regular,
-      ),
-    ),
-  ),
+  textTheme: CupertinoTextThemeData(textStyle: GoogleFonts.nunito()),
 );
 
 final _tabBarTheme = TabBarTheme(
@@ -119,10 +112,10 @@ final _tabBarTheme = TabBarTheme(
   overlayColor: const WidgetStatePropertyAll(Colors.transparent),
   dividerHeight: 0,
   labelColor: klBackgroundColor,
-  labelStyle: GoogleFonts.lateef( // Changed to Lateef
+  labelStyle: GoogleFonts.nunito(
     textStyle: const TextStyle(
       fontWeight: FontWeights.regular,
-      fontSize: 24, // 14+8=22
+      fontSize: 14,
     ),
   ),
   unselectedLabelColor: Colors.black45,
