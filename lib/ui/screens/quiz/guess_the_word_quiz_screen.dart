@@ -49,7 +49,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     super.dispose();
   }
 
-  // Load drugs from local storage or fetch from server
   Future<void> loadDrugs() async {
     try {
       bool hasLocalData = await _drugService.hasLocalData();
@@ -76,7 +75,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-  // Refresh data from the server
   Future<void> _refreshData() async {
     setState(() {
       isLoading = true;
@@ -115,7 +113,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-  // Fetch version info from the server
   Future<Map<String, dynamic>> fetchVersionInfo() async {
     try {
       final response = await http.get(Uri.parse(versionUrl));
@@ -130,7 +127,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-  // Show update dialog if a new version is available
   Future<void> _showUpdateDialog(String remoteVersion) async {
     DataVersion? localVersion = _drugService.getLocalVersion();
     String localVersionStr = localVersion?.version ?? 'Unknown';
@@ -168,7 +164,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     );
   }
 
-  // Compare semantic versions
   bool _isVersionNewer(String remote, String local) {
     List<int> remoteParts = remote.split('.').map(int.parse).toList();
     List<int> localParts = local.split('.').map(int.parse).toList();
@@ -181,40 +176,54 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     return false;
   }
 
-  // Handle drug tap
   void _onDrugTap(Drug drug) {
     setState(() {
       selectedDrug = drug;
     });
   }
 
-  // Show similar drugs
   void _showSimilarDrugs() {
     if (selectedDrug == null) return;
 
-    setState(() {
-      filteredDrugs = allDrugs
-          .where((drug) =>
-              drug.genericName.toLowerCase() ==
-              selectedDrug!.genericName.toLowerCase())
-          .toList();
-    });
+    List<Drug> similarDrugs = allDrugs
+        .where((drug) =>
+            drug.genericName.toLowerCase() ==
+            selectedDrug!.genericName.toLowerCase())
+        .toList();
+
+    if (selectedCountry != null) {
+      similarDrugs = similarDrugs.where((drug) {
+        List<String> keValues = drug.ke.split(',');
+        return selectedCountry == 'Egypt' 
+            ? (keValues.contains('1') || keValues.contains('2'))
+            : (keValues.contains('1') || keValues.contains('3'));
+      }).toList();
+    }
+
+    setState(() => filteredDrugs = similarDrugs);
   }
 
-  // Show alternative drugs
   void _showAlternativeDrugs() {
     if (selectedDrug == null) return;
 
-    setState(() {
-      filteredDrugs = allDrugs
-          .where((drug) =>
-              drug.pharmacology.toLowerCase() ==
-              selectedDrug!.pharmacology.toLowerCase())
-          .toList();
-    });
+    List<Drug> alternativeDrugs = allDrugs
+        .where((drug) =>
+            drug.pharmacology.toLowerCase() ==
+            selectedDrug!.pharmacology.toLowerCase())
+        .toList();
+
+    if (selectedCountry != null) {
+      alternativeDrugs = alternativeDrugs.where((drug) {
+        List<String> keValues = drug.ke.split(',');
+        return selectedCountry == 'Egypt' 
+            ? (keValues.contains('1') || keValues.contains('2'))
+            : (keValues.contains('1') || keValues.contains('3'));
+      }).toList();
+    }
+
+    setState(() => filteredDrugs = alternativeDrugs);
   }
 
-  // Show drug image in Google Images
   Future<void> _showDrugImage() async {
     if (selectedDrug == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -235,7 +244,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-  // Handle description button click
   void _onDescriptionButtonClick() {
     if (selectedDrug == null) return;
 
@@ -261,23 +269,23 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
   }
 
-  // Filter drugs by country
   void _filterByCountry(String country) {
+    searchController.clear();
     setState(() {
       selectedCountry = country;
+      filteredDrugs = [];
     });
   }
 
-  // Search and filter drugs
   void _search() {
     final query = searchController.text.toLowerCase();
 
-    if (query.length < 2) {
+    if (query.isEmpty) {
       setState(() => filteredDrugs = []);
       return;
     }
 
-    String pattern = '^${RegExp.escape(query).replaceAll(r'\*', '.*').replaceAll(r'\ ', '.*')}';
+    String pattern = query.replaceAll(' ', '.*').replaceAll('*', '.*');
     RegExp regex = RegExp(pattern, caseSensitive: false);
 
     List<Drug> tempList = allDrugs.where((drug) {
@@ -295,7 +303,6 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
       return regex.hasMatch(fieldToSearch);
     }).toList();
 
-    // Apply country filter after search
     if (selectedCountry != null) {
       tempList = tempList.where((drug) {
         List<String> keValues = drug.ke.split(',');
@@ -306,6 +313,12 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     }
 
     setState(() => filteredDrugs = tempList);
+  }
+
+  Widget _getOtcIndicator(String otc) {
+    if (otc == 'o') return const Text('OTC', style: TextStyle(fontSize: 12, color: Colors.green));
+    if (otc == 'p') return const Text('Presc', style: TextStyle(fontSize: 12, color: Colors.red));
+    return const SizedBox.shrink();
   }
 
   @override
@@ -325,9 +338,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           ElevatedButton(
             onPressed: () => _filterByCountry('Egypt'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCountry == 'Egypt'
-                  ? Colors.blue[800]
-                  : Colors.blue[400],
+              backgroundColor: selectedCountry == 'Egypt' ? Colors.green : Colors.grey[400],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -342,9 +353,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
           ElevatedButton(
             onPressed: () => _filterByCountry('Saudi'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: selectedCountry == 'Saudi'
-                  ? Colors.green[800]
-                  : Colors.green[400],
+              backgroundColor: selectedCountry == 'Saudi' ? Colors.green : Colors.grey[400],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -371,10 +380,13 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                           Expanded(
                             child: TextField(
                               controller: searchController,
+                              onTap: () => searchController.clear(),
                               decoration: InputDecoration(
                                 labelText: 'Search',
                                 prefixIcon: const Icon(Icons.search),
-                                border: const OutlineInputBorder(),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  borderSide: const BorderSide(width: 0.5)),
                                 filled: true,
                                 fillColor: Colors.grey[200],
                               ),
@@ -387,6 +399,14 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                             style: const TextStyle(
                               color: Colors.black,
                               fontSize: 16,
+                            ),
+                            isExpanded: true,
+                            hint: const Row(
+                              children: [
+                                Icon(Icons.filter_list, size: 20),
+                                SizedBox(width: 8),
+                                Text('Filter by'),
+                              ],
                             ),
                             items: const [
                               DropdownMenuItem(value: 'Trade Name', child: Text('Trade Name')),
@@ -423,6 +443,7 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                                       ),
                                     ),
                                     subtitle: Text(drug.genericName),
+                                    trailing: _getOtcIndicator(drug.otc),
                                     onTap: () => _onDrugTap(drug),
                                   ),
                                 );
@@ -437,21 +458,32 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
                           ElevatedButton(
                             onPressed: selectedDrug != null ? _onDescriptionButtonClick : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[800],
+                              backgroundColor: selectedDrug != null ? Colors.blue[800] : Colors.grey,
                               minimumSize: const Size(double.infinity, 50),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text(
-                              selectedDrug != null
-                                  ? 'Description: ${selectedDrug!.tradeName}'
-                                  : 'Description',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  selectedDrug?.tradeName ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                if (selectedDrug != null)
+                                  Text(
+                                    selectedDrug!.pharmacology,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 10),
