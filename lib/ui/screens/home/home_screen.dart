@@ -1143,7 +1143,7 @@ Widget _buildZones() {
               desc: context.tr(playDifferentZones[i].desc)!,
               img: playDifferentZones[i].img,
               gradient: LinearGradient(
-                colors: [Colors.pink, Colors.pink.shade400],
+                colors: [Colors.pink, Colors.pink.shade300],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
