@@ -456,7 +456,7 @@ void _search() {
                           : const Center(child: Text('No drugs found')),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 16.0),
                       child: Column(
                         children: [
                           ElevatedButton(
