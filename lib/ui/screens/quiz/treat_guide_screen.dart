@@ -341,7 +341,7 @@ Widget _buildTreatmentCard(String title, String? content) {
     ),
     elevation: 2,
     child: Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromTRB(5.0, 16.0, 5.0, 16.0),
       child: Column(
         crossAxisAlignment: isArabicContent 
             ? CrossAxisAlignment.end 
