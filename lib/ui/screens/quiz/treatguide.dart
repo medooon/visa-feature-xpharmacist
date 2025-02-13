@@ -44,18 +44,18 @@ class IllnessData {
     );
   }
 }
-class GuessTheWordQuizScreen extends StatefulWidget {
-  const GuessTheWordQuizScreen({Key? key}) : super(key: key);
+class TreatGuide extends StatefulWidget {
+  const TreatGuide({Key? key}) : super(key: key);
   static Route route(RouteSettings settings) {
     return MaterialPageRoute(
-      builder: (_) => const GuessTheWordQuizScreen(),
+      builder: (_) => const TreatGuide(),
       settings: settings,
     );
   }
   @override
-  _GuessTheWordQuizScreenState createState() => _GuessTheWordQuizScreenState();
+  _TreatGuideState createState() => _TreatGuideState();
 }
-class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
+class _TreatGuideState extends State<TreatGuide> {
   String? selectedCountry = 'Egypt';
   String? selectedSystem;
   String? selectedIllness;
