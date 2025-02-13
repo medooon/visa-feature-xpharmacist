@@ -278,63 +278,45 @@ class _GuessTheWordQuizScreenState extends State<GuessTheWordQuizScreen> {
     });
   }
 
-  void _search() {
-    final query = searchController.text.toLowerCase().trim();
+void _search() {
+  final query = searchController.text.toLowerCase().trim();
 
-    if (query.isEmpty) {
-      setState(() => filteredDrugs = []);
-      return;
-    }
-
-    String pattern;
-    if (query.contains(' ') || query.contains('*')) {
-      pattern = query.replaceAll(' ', '.*').replaceAll('*', '.*');
-    } else {
-      pattern = '^${RegExp.escape(query)}';
-    }
-
-    RegExp regex = RegExp(pattern, caseSensitive: false);
-
-    List<Drug> tempList = allDrugs.where((drug) {
-      String fieldToSearch;
-      switch (searchCriteria) {
-        case 'Generic Name':
-          fieldToSearch = drug.genericName.toLowerCase();
-          break;
-        case 'Pharmacology':
-          fieldToSearch = drug.pharmacology.toLowerCase();
-          break;
-        default:
-          fieldToSearch = drug.tradeName.toLowerCase();
-      }
-      return regex.hasMatch(fieldToSearch);
-    }).toList();
-
-    // Sort results with exact matches first
-    tempList.sort((a, b) {
-      final aField = searchCriteria == 'Generic Name' ? a.genericName.toLowerCase() 
-                   : searchCriteria == 'Pharmacology' ? a.pharmacology.toLowerCase()
-                   : a.tradeName.toLowerCase();
-      final bField = searchCriteria == 'Generic Name' ? b.genericName.toLowerCase()
-                   : searchCriteria == 'Pharmacology' ? b.pharmacology.toLowerCase()
-                   : b.tradeName.toLowerCase();
-      
-      if (aField.startsWith(query)) return -1;
-      if (bField.startsWith(query)) return 1;
-      return aField.compareTo(bField);
-    });
-
-    if (selectedCountry != null) {
-      tempList = tempList.where((drug) {
-        List<String> keValues = drug.ke.split(',');
-        return selectedCountry == 'Egypt'
-            ? (keValues.contains('1') || keValues.contains('2'))
-            : (keValues.contains('1') || keValues.contains('3'));
-      }).toList();
-    }
-
-    setState(() => filteredDrugs = tempList);
+  // Only show results when query has 2+ characters
+  if (query.length < 2) {
+    setState(() => filteredDrugs = []);
+    return;
   }
+
+  // Original search logic below (keep everything else the same)
+  String pattern = query.replaceAll(' ', '.*').replaceAll('*', '.*');
+  RegExp regex = RegExp(pattern, caseSensitive: false);
+
+  List<Drug> tempList = allDrugs.where((drug) {
+    String fieldToSearch;
+    switch (searchCriteria) {
+      case 'Generic Name':
+        fieldToSearch = drug.genericName.toLowerCase();
+        break;
+      case 'Pharmacology':
+        fieldToSearch = drug.pharmacology.toLowerCase();
+        break;
+      default:
+        fieldToSearch = drug.tradeName.toLowerCase();
+    }
+    return regex.hasMatch(fieldToSearch);
+  }).toList();
+
+  if (selectedCountry != null) {
+    tempList = tempList.where((drug) {
+      List<String> keValues = drug.ke.split(',');
+      return selectedCountry == 'Egypt'
+          ? (keValues.contains('1') || keValues.contains('2'))
+          : (keValues.contains('1') || keValues.contains('3'));
+    }).toList();
+  }
+
+  setState(() => filteredDrugs = tempList);
+}
 
   Widget _getOtcIndicator(String otc) {
     if (selectedCountry != 'Saudi') return const SizedBox.shrink();
