@@ -41,11 +41,13 @@ import 'package:flutterquiz/ui/screens/quiz/self_challenge_questions_screen.dart
 import 'package:flutterquiz/ui/screens/quiz/self_challenge_screen.dart';
 import 'package:flutterquiz/ui/screens/quiz/subcategory_and_level_screen.dart';
 import 'package:flutterquiz/ui/screens/quiz/subcategory_screen.dart';
+import 'package:flutterquiz/ui/screens/quiz/treatguide.dart';
 import 'package:flutterquiz/ui/screens/refer_and_earn_screen.dart';
 import 'package:flutterquiz/ui/screens/rewards/rewards_screen.dart';
 import 'package:flutterquiz/ui/screens/splash_screen.dart';
 import 'package:flutterquiz/ui/screens/statistics_screen.dart';
 import 'package:flutterquiz/ui/screens/wallet/wallet_screen.dart';
+
 
 class Routes {
   static const home = '/';
@@ -87,6 +89,7 @@ class Routes {
   static const funAndLearnTitle = '/funAndLearnTitle';
   static const funAndLearn = 'funAndLearn';
   static const guessTheWord = '/guessTheWord';
+  static const treatguide = '/treatguide';
   static const appSettings = '/appSettings';
   static const levels = '/levels';
   static const aboutApp = '/aboutApp';
@@ -100,6 +103,7 @@ class Routes {
   static const menuScreen = '/menuScreen';
   static const randomBattle = '/randomBattle';
   static const languageSelect = '/language-select';
+  
 
   static String currentRoute = splash;
 
@@ -171,6 +175,8 @@ class Routes {
         return ContestScreen.route(routeSettings);
       case guessTheWord:
         return GuessTheWordQuizScreen.route(routeSettings);
+      case treatguide:
+        return treatguide.route(routeSettings);        
       case multiUserBattleRoomQuizResult:
         return MultiUserBattleRoomResultScreen.route(routeSettings);
       case contestLeaderboard:
