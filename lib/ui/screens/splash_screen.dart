@@ -58,7 +58,6 @@ class _SplashScreenState extends State<SplashScreen>
     )..addListener(() {
         if (_logoAnimationController.isCompleted) {
           _navigateToNextScreen();
-          // setState(() {});
         }
       });
     _logoScaleUpAnimation = Tween<double>(begin: 0, end: 1.1).animate(
@@ -102,7 +101,6 @@ class _SplashScreenState extends State<SplashScreen>
     final currAuthState = context.read<AuthCubit>().state;
 
     if (showIntroSlider) {
-      /// Set Default Quiz Language
       if (context.read<SystemConfigCubit>().isLanguageModeEnabled) {
         final defaultQuizLanguage = context
             .read<SystemConfigCubit>()
@@ -112,7 +110,6 @@ class _SplashScreenState extends State<SplashScreen>
         context.read<QuizLanguageCubit>().languageId = defaultQuizLanguage.id;
       }
 
-      /// Navigate to language select screen if more than one language is available
       if (context.read<AppLocalizationCubit>().state.systemLanguages.length >
           1) {
         await Navigator.of(context).pushReplacementNamed(Routes.languageSelect);
@@ -154,13 +151,11 @@ class _SplashScreenState extends State<SplashScreen>
         if (state is SystemConfigFetchFailure) {
           return Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: Center(
-              key: const Key('errorContainer'),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Error message
-                  ErrorContainer(
+            body: Stack(
+              children: [
+                Center(
+                  key: const Key('errorContainer'),
+                  child: ErrorContainer(
                     showBackButton: true,
                     errorMessageColor: Theme.of(context).colorScheme.onTertiary,
                     errorMessage: convertErrorCodeToLanguageKey(state.errorCode),
@@ -170,20 +165,38 @@ class _SplashScreenState extends State<SplashScreen>
                     },
                     showErrorImage: true,
                   ),
-                  const SizedBox(height: 20), // Spacing between buttons
-                  // Egypt Drug Index button
-                  ElevatedButton(
-                    onPressed: () {
-                      // Navigate to the GuessTheWordQuizScreen (Egypt Drug Index)
-                      Navigator.of(context).pushNamed(Routes.guessTheWord);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue, // Custom button color
+                ),
+
+                /// Egypt Drug Index Button at Bottom
+                Positioned(
+                  bottom: 20, // Adjust bottom padding
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16), // Add side padding
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(Routes.guessTheWord);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink, // Button color
+                        padding: const EdgeInsets.symmetric(vertical: 16), // Increase height
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8), // Optional rounded corners
+                        ),
+                      ),
+                      child: const Text(
+                        'Drug Index',
+                        style: TextStyle(
+                          color: Colors.white, // White text
+                          fontWeight: FontWeight.bold, // Bold font
+                          fontSize: 18, // Larger font size
+                        ),
+                      ),
                     ),
-                    child: const Text('Egypt Drug Index'),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }
@@ -193,7 +206,6 @@ class _SplashScreenState extends State<SplashScreen>
           body: SizedBox.expand(
             child: Stack(
               children: [
-                /// App Logo
                 Align(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 100),
@@ -213,8 +225,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                /// Organization Logo
-                if (showCompanyLogo) ...[
+                if (showCompanyLogo)
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
@@ -222,7 +233,6 @@ class _SplashScreenState extends State<SplashScreen>
                       child: QImage(imageUrl: _orgLogoPath),
                     ),
                   ),
-                ],
               ],
             ),
           ),
