@@ -175,8 +175,8 @@ class Routes {
         return ContestScreen.route(routeSettings);
       case guessTheWord:
         return GuessTheWordQuizScreen.route(routeSettings);
-      case treatguide:
-        return treatguidescreen.route(routeSettings);        
+case treatguide:
+  return TreatGuidescreen.route(routeSettings); // Corrected casing        
       case multiUserBattleRoomQuizResult:
         return MultiUserBattleRoomResultScreen.route(routeSettings);
       case contestLeaderboard:
