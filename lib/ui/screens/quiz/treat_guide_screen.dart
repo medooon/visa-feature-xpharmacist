@@ -375,7 +375,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
     final isArabicContent = _isArabic(content);
     return Card(
       color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.fromLTRB(5.0, 16.0, 5.0, 16.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -404,8 +404,8 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
                 content,
                 customStylesBuilder: (element) => {
                   'table': 'width: 100%; border-collapse: collapse;',
-                  'td': 'padding: 3px; border: 1px solid #ddd;',
-                  'th': 'padding: 3px; border: 1px solid #ddd; background: #f5f5f5;'
+                  'td': 'padding: 5px; border: 1px solid #ddd;',
+                  'th': 'padding: 5px; border: 1px solid #ddd; background: #f5f5f5;'
                 },
                 textStyle: TextStyle(
                   fontSize: 16, // Maintain content size
