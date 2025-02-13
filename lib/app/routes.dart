@@ -41,7 +41,7 @@ import 'package:flutterquiz/ui/screens/quiz/self_challenge_questions_screen.dart
 import 'package:flutterquiz/ui/screens/quiz/self_challenge_screen.dart';
 import 'package:flutterquiz/ui/screens/quiz/subcategory_and_level_screen.dart';
 import 'package:flutterquiz/ui/screens/quiz/subcategory_screen.dart';
-import 'package:flutterquiz/ui/screens/quiz/treatguide_screen.dart';
+import 'package:flutterquiz/ui/screens/quiz/treat_guide_screen.dart';
 import 'package:flutterquiz/ui/screens/refer_and_earn_screen.dart';
 import 'package:flutterquiz/ui/screens/rewards/rewards_screen.dart';
 import 'package:flutterquiz/ui/screens/splash_screen.dart';
