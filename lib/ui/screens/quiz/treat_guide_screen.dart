@@ -66,13 +66,23 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
   String? selectedSystem;
   String? selectedIllness;
   List<IllnessData> illnessesList = [];
-  List<String> systemsList = [];
   List<IllnessData> filteredIllnesses = [];
   bool isLoading = true;
   String? errorMessage;
 
   bool _isArabic(String text) {
     return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
+  }
+
+  List<String> get _filteredSystems {
+    final filtered = illnessesList
+        .where((illness) => selectedCountry == 'OTC'
+            ? illness.caseAvailability == 1
+            : illness.caseAvailability == 2)
+        .map((illness) => illness.system)
+        .toSet()
+        .toList();
+    return filtered;
   }
 
   @override
@@ -88,7 +98,6 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
         final String decodedBody = utf8.decode(response.bodyBytes);
         final List<dynamic> jsonData = json.decode(decodedBody);
         illnessesList = jsonData.map((item) => IllnessData.fromJson(item)).toList();
-        systemsList = _getUniqueSystems();
         setState(() => isLoading = false);
       } else {
         setState(() {
@@ -104,13 +113,9 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
     }
   }
 
-  List<String> _getUniqueSystems() {
-    return illnessesList.map((e) => e.system).toSet().toList();
-  }
-
   void _filterIllnesses() {
     filteredIllnesses = illnessesList.where((illness) {
-      final countryMatch = selectedCountry == 'OTC' 
+      final countryMatch = selectedCountry == 'OTC'
           ? illness.caseAvailability == 1
           : illness.caseAvailability == 2;
       return illness.system == selectedSystem && countryMatch;
@@ -123,7 +128,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
         ? {
             1: 'Symptoms',
             2: 'Baby',
-            3: 'Children', 
+            3: 'Children',
             4: 'Adults',
             5: 'Pregnancy',
             6: 'Advices'
@@ -167,8 +172,8 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
     final selectedIllnessData = illnessesList.firstWhere(
       (e) => e.name == selectedIllness,
       orElse: () => IllnessData(
-        system: '', name: '', treatment1: '', treatment2: '', 
-        treatment3: '', treatment4: '', complementary: '', cautions: '', 
+        system: '', name: '', treatment1: '', treatment2: '',
+        treatment3: '', treatment4: '', complementary: '', cautions: '',
         imageUrls: [], caseAvailability: 0),
     );
 
@@ -242,6 +247,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
       onPressed: () {
         setState(() {
           selectedCountry = country;
+          selectedSystem = null; // Reset system selection
           _filterIllnesses();
         });
       },
@@ -270,7 +276,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
           : GoogleFonts.nunito(fontSize: 16, color: Colors.black),
       dropdownColor: Colors.white,
       value: selectedSystem,
-      items: systemsList.map((system) {
+      items: _filteredSystems.map((system) {
         return DropdownMenuItem(
           value: system,
           child: Container(
@@ -390,7 +396,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
             Text(
               title,
               style: GoogleFonts.nunito(
-                fontSize: 14, // Reduced title size
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[800],
               ),
@@ -408,7 +414,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
                   'th': 'padding: 5px; border: 1px solid #ddd; background: #f5f5f5;'
                 },
                 textStyle: TextStyle(
-                  fontSize: 16, // Maintain content size
+                  fontSize: 16,
                   fontFamily: isArabicContent
                       ? GoogleFonts.lateef().fontFamily
                       : GoogleFonts.nunito().fontFamily,
