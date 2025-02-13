@@ -506,10 +506,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return;
       case 'audioQuestions':
         Navigator.of(context).pushNamed(
-          Routes.category,
-          arguments: {
-            'quizType': QuizTypes.audioQuestions,
-          },
+          Routes.treatguide
         );
         return;
       case 'mathMania':
