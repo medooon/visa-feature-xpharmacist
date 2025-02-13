@@ -44,18 +44,18 @@ class IllnessData {
     );
   }
 }
-class TreatGuide extends StatefulWidget {
-  const TreatGuide({Key? key}) : super(key: key);
+class TreatGuidescreen extends StatefulWidget {
+  const TreatGuidescreen({Key? key}) : super(key: key);
   static Route route(RouteSettings settings) {
     return MaterialPageRoute(
-      builder: (_) => const TreatGuide(),
+      builder: (_) => const TreatGuidescreen(),
       settings: settings,
     );
   }
   @override
-  _TreatGuideState createState() => _TreatGuideState();
+  _TreatGuidescreenState createState() => _TreatGuidescreenState();
 }
-class _TreatGuideState extends State<TreatGuide> {
+class _TreatGuidescreenState extends State<TreatGuidescreen> {
   String? selectedCountry = 'Egypt';
   String? selectedSystem;
   String? selectedIllness;
