@@ -381,7 +381,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
       ),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.fromTRB(5.0, 16.0, 5.0, 16.0),
+        padding: const EdgeInsets.fromLTRB(5.0, 16.0, 5.0, 16.0),
         child: Column(
           crossAxisAlignment: isArabicContent 
               ? CrossAxisAlignment.end 
