@@ -461,14 +461,14 @@ RegExp regex = RegExp(pattern, caseSensitive: false);
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                SvgPicture.asset('assets/images/app_logo.svg', // Updated path
-                               height: 66,
-                               width: 168,
+                               height: 109,
+                               width: 240,
                                    ),
                                       const SizedBox(height: 20),
                                        const Text(
-                               'The First Complete App For Pharmacist',
+                               'For The Best Pharmacist s',
                                       style: TextStyle(
-                                             fontSize: 18,
+                                             fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                    color: Colors.blueGrey,
                                 ),
