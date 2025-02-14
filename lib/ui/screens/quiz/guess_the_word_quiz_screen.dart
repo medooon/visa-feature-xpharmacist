@@ -388,7 +388,7 @@ RegExp regex = RegExp(pattern, caseSensitive: false);
                         child: Column(
                           children: [
                             SvgPicture.asset(
-                              'assets/appLogo.svg',
+                              'assets/images/appLogo.svg',
                               height: 80,
                               width: 80,
                             ),
