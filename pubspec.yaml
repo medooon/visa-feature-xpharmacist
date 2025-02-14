@@ -81,7 +81,7 @@ flutter:
     - assets/images/
     - assets/images/profile/
     - assets/images/whatsapp.svg
-    - assets/images/appLogo.svg
+    - assets/images/app_Logo.svg
     - assets/images/emojis/
 
     - assets/animations/
