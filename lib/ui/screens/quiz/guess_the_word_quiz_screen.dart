@@ -288,8 +288,10 @@ void _search() {
   }
 
   // Original search logic below (keep everything else the same)
-  String pattern = query.replaceAll(' ', '.*').replaceAll('*', '.*');
-  RegExp regex = RegExp(pattern, caseSensitive: false);
+  String pattern = '^' + query.replaceAll(' ', '.*');  
+RegExp regex = RegExp(pattern, caseSensitive: false);
+ // String pattern = query.replaceAll(' ', '.*').replaceAll('*', '.*');
+ // RegExp regex = RegExp(pattern, caseSensitive: false);
 
   List<Drug> tempList = allDrugs.where((drug) {
     String fieldToSearch;
