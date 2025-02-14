@@ -6,6 +6,8 @@ import 'package:flutterquiz/models/data_version.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_svg/flutter_svg.dart';  // Added import
+
 
 class GuessTheWordQuizScreen extends StatefulWidget {
   const GuessTheWordQuizScreen({Key? key}) : super(key: key);
@@ -379,6 +381,30 @@ RegExp regex = RegExp(pattern, caseSensitive: false);
               ? Center(child: Text(errorMessage))
               : Column(
                   children: [
+                    // Added logo and phrase section
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20, bottom: 10),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/appLogo.svg',
+                              height: 80,
+                              width: 80,
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'The First Complete App For Pharmacist',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
