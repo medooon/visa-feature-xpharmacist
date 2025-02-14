@@ -381,30 +381,6 @@ RegExp regex = RegExp(pattern, caseSensitive: false);
               ? Center(child: Text(errorMessage))
               : Column(
                   children: [
-                    // Added logo and phrase section
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20, bottom: 10),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            SvgPicture.asset(
-                              'assets/images/app_Logo.svg',
-                              height: 66,
-                              width: 168,
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'The First Complete App For Pharmacist',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blueGrey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
@@ -481,7 +457,25 @@ RegExp regex = RegExp(pattern, caseSensitive: false);
                                 );
                               },
                             )
-                          : const Center(child: Text('No drugs found')),
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                               SvgPicture.asset('assets/images/app_logo.svg', // Updated path
+                               height: 66,
+                               width: 168,
+                                   ),
+                                      const SizedBox(height: 20),
+                                       const Text(
+                               'The First Complete App For Pharmacist',
+                                      style: TextStyle(
+                                             fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                   color: Colors.blueGrey,
+                                ),
+                             textAlign: TextAlign.center,
+                        ),
+                      ],
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 16.0),
