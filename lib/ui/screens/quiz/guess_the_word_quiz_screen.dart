@@ -389,8 +389,8 @@ RegExp regex = RegExp(pattern, caseSensitive: false);
                           children: [
                             SvgPicture.asset(
                               'assets/images/appLogo.svg',
-                              height: 80,
-                              width: 80,
+                              height: 66,
+                              width: 168,
                             ),
                             const SizedBox(height: 12),
                             const Text(
