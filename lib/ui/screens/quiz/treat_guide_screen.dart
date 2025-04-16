@@ -93,7 +93,7 @@ class _TreatGuidescreenState extends State<TreatGuidescreen> {
 
   Future<void> _loadData() async {
     try {
-      final response = await http.get(Uri.parse('https://egypt.moazpharmacy.com/ill.json'));
+      final response = await http.get(Uri.parse('https://egypt.h.com/ill.json'));
       if (response.statusCode == 200) {
         final String decodedBody = utf8.decode(response.bodyBytes);
         final List<dynamic> jsonData = json.decode(decodedBody);
