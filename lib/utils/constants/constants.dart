@@ -16,7 +16,7 @@ const packageName = 'com.X.Pharmacist';
 /// Add your database url
 // NOTE: make sure to not add '/' at the end of url
 // NOTE: make sure to check if admin panel is http or https
-const databaseUrl = 'https://226.waseetcash.com';
+const databaseUrl = 'https://2ash.com';
 
 // Enter 2 Letter ISO Country Code
 const defaultCountryCodeForPhoneLogin = 'IN';
